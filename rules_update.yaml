@@ -1,0 +1,8 @@
+--- - hosts: webservers become: yes become_user: root become_method: sudo
+
+  tasks:
+  - name: Installation des paquets
+    apt:
+      update_cache: yes
+      state: latest
+      name: ['glance', 'php', 'apache2', 'mysql-server', 'sudo', 'tar', 'unzip', 'whois', 'nano']      
