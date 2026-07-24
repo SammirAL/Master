@@ -1,9 +1,9 @@
 {
-  "name": "@agency-os/backend",
+  "name": "@agency-os/mcp",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Composition root d'Agency AI OS : câblage DI, orchestrateur, workers",
+  "description": "Passerelle MCP d'Agency AI OS : permissions, portées, quotas, audit, connecteurs",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,18 +16,18 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "demo": "tsx src/demo.ts"
+    "verify:firecrawl": "tsx scripts/verify-firecrawl.ts"
   },
   "dependencies": {
     "@agency-os/shared": "workspace:*",
+    "@agency-os/database": "workspace:*",
     "@agency-os/tasks": "workspace:*",
-    "@agency-os/messaging": "workspace:*",
-    "@agency-os/agents": "workspace:*",
-    "@agency-os/ceo": "workspace:*",
-    "@agency-os/mcp": "workspace:*",
-    "@agency-os/database": "workspace:*"
+    "@modelcontextprotocol/sdk": "^1.13.0",
+    "drizzle-orm": "^0.38.3",
+    "firecrawl-mcp": "^1.12.0",
+    "yaml": "^2.6.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

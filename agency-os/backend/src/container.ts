@@ -30,6 +30,15 @@ import {
   InMemoryDecisionRepository,
   DrizzleDecisionRepository,
 } from '@agency-os/ceo';
+import {
+  McpGateway,
+  EnvCredentialsBroker,
+  InMemoryQuotaGuard,
+  InMemoryAuditSink,
+  DrizzleAuditSink,
+  createDefaultConnectors,
+  type McpAuditSink,
+} from '@agency-os/mcp';
 import { createDb } from '@agency-os/database';
 import type { BackendConfig } from './config.js';
 
@@ -60,9 +69,21 @@ export interface Wiring {
   runner: AgentRunner;
   queue: QueuePort;
   registry: AgentRegistry;
+  mcp: McpGateway;
   /** Démarre le worker : chaque tâche enfilée est exécutée, puis les dépendants prêts sont libérés. */
   startWorker: () => void;
   close: () => Promise<void>;
+}
+
+/** Construit la passerelle MCP avec ses connecteurs par défaut. */
+function buildGateway(audit: McpAuditSink): McpGateway {
+  const gateway = new McpGateway({
+    audit,
+    credentials: new EnvCredentialsBroker(),
+    quota: new InMemoryQuotaGuard(),
+  });
+  for (const connector of createDefaultConnectors()) gateway.register(connector);
+  return gateway;
 }
 
 function buildRegistry(): AgentRegistry {
@@ -75,6 +96,7 @@ function assemble(
   queue: QueuePort,
   decisionEngine: DecisionEngine,
   bus: MessageBus,
+  mcp: McpGateway,
   closeExtra: () => Promise<void>,
 ): Wiring {
   const tasks = new TaskService(repo, systemClock);
@@ -86,6 +108,7 @@ function assemble(
     reports,
     bus,
     registry,
+    mcp,
     brainFor: () => createFakeBrain(),
   });
 
@@ -107,9 +130,11 @@ function assemble(
     runner,
     queue,
     registry,
+    mcp,
     startWorker,
     close: async () => {
       await queue.close();
+      await mcp.close();
       await closeExtra();
     },
   };
@@ -122,7 +147,8 @@ export function createMemoryWiring(): Wiring {
   const queue = new InMemoryQueue();
   const bus = new InProcessMessageBus(new InMemoryMessageStore(), { audit: consoleAudit });
   const decisions = new DecisionEngine(new InMemoryDecisionRepository());
-  return assemble(repo, reports, queue, decisions, bus, async () => {});
+  const mcp = buildGateway(new InMemoryAuditSink());
+  return assemble(repo, reports, queue, decisions, bus, mcp, async () => {});
 }
 
 /** Câblage PostgreSQL + Redis (BullMQ). Nécessite DATABASE_URL et REDIS_URL. */
@@ -142,7 +168,8 @@ export function createPostgresWiring(config: BackendConfig): Wiring {
   });
 
   const bus = new InProcessMessageBus(new InMemoryMessageStore(), { audit: consoleAudit });
-  return assemble(repo, reports, queue, decisions, bus, closeDb);
+  const mcp = buildGateway(new DrizzleAuditSink(db));
+  return assemble(repo, reports, queue, decisions, bus, mcp, closeDb);
 }
 
 /** Sélectionne le câblage selon la configuration. */

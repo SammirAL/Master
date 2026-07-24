@@ -1,0 +1,104 @@
+# Registre des serveurs MCP disponibles pour la passerelle.
+# La passerelle n'expose à un agent que les serveurs autorisés par la matrice
+# (docs/03-agents/README.md) ; ce registre décrit COMMENT joindre chaque serveur.
+# Les secrets ne figurent JAMAIS ici : ils sont référencés par variable d'env /
+# coffre et injectés à l'exécution par le credentials-broker.
+
+version: 1
+servers:
+  - id: firecrawl
+    status: real            # connecteur réel (relais vers firecrawl-mcp)
+    transport: stdio
+    package: firecrawl-mcp   # https://github.com/firecrawl/firecrawl-mcp-server
+    secretRefs: [FIRECRAWL_API_KEY]
+    capabilities: [read]
+
+  - id: filesystem
+    status: real
+    transport: in-process
+    scope: data/sites/<site_id>/
+    capabilities: [read, stage, writeDirect]
+
+  - id: github
+    status: stub
+    transport: sdk
+    scope: branch+PR only (jamais de push/merge direct sur main)
+    capabilities: [read, stage, produce]
+
+  - id: playwright
+    status: stub
+    transport: in-process
+    capabilities: [read]
+  - id: gsc
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/google]
+    capabilities: [read]
+  - id: ga4
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/google]
+    capabilities: [read]
+  - id: google-ads
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/google-ads]
+    capabilities: [read, produce]   # toute dépense = L3 (CEO + humain)
+  - id: wordpress
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/wordpress]
+    capabilities: [read, stage, produce]
+  - id: shopify
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/shopify]
+    capabilities: [read, stage, produce]
+  - id: postgresql
+    status: stub
+    transport: driver
+    secretRefs: [vault://sites/<site_id>/postgres]
+    capabilities: [read, stage, writeDirect]
+  - id: mysql
+    status: stub
+    transport: driver
+    secretRefs: [vault://sites/<site_id>/mysql]
+    capabilities: [read, stage]
+  - id: supabase
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/supabase]
+    capabilities: [read, writeDirect]
+  - id: qdrant
+    status: stub
+    transport: http
+    secretRefs: [QDRANT_URL, QDRANT_API_KEY]
+    capabilities: [read, writeDirect]   # écriture directe : Memory Manager uniquement
+  - id: brave-search
+    status: stub
+    transport: http
+    secretRefs: [BRAVE_SEARCH_API_KEY]
+    capabilities: [read]
+  - id: exa
+    status: stub
+    transport: http
+    secretRefs: [EXA_API_KEY]
+    capabilities: [read]
+  - id: stripe
+    status: stub
+    transport: http
+    secretRefs: [vault://sites/<site_id>/stripe]
+    capabilities: [read]
+  - id: docker
+    status: stub
+    transport: sandbox
+    capabilities: [stage]
+  - id: terminal
+    status: stub
+    transport: sandbox
+    capabilities: [stage]
+  - id: n8n
+    status: stub
+    transport: http
+    secretRefs: [N8N_URL]
+    capabilities: [read, stage, produce]   # activation d'un workflow = L3

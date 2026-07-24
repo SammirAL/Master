@@ -1,5 +1,6 @@
 import type {
   AgentDefinition,
+  McpServer,
   MemoryRecord,
   Report,
   ReportSections,
@@ -8,13 +9,37 @@ import type {
 } from '@agency-os/shared';
 
 /**
+ * Passerelle MCP vue par le runtime (port). L'implémentation concrète
+ * (`@agency-os/mcp` McpGateway) est injectée par la composition root ; le
+ * runtime ne dépend que de cette interface (SOLID, pas de dépendance vers mcp).
+ */
+export interface McpGatewayPort {
+  call(
+    agent: string,
+    server: McpServer,
+    method: string,
+    args: Record<string, unknown>,
+    ctx: { taskId?: string | null; siteId?: string | null; clientId?: string | null; validated?: boolean },
+  ): Promise<unknown>;
+}
+
+/** Appelant MCP lié à un agent et une tâche, remis au cerveau via le contexte. */
+export type BoundTools = (
+  server: McpServer,
+  method: string,
+  args?: Record<string, unknown>,
+) => Promise<unknown>;
+
+/**
  * Contexte assemblé pour une exécution d'agent : la tâche, la définition de
- * l'agent, et les souvenirs pertinents (rappel mémoire — stub en phase 1).
+ * l'agent, les souvenirs pertinents (rappel mémoire — stub en phase 1) et,
+ * le cas échéant, l'accès aux outils MCP (borné à l'agent et à la tâche).
  */
 export interface AgentContext {
   task: Task;
   definition: AgentDefinition;
   memories: MemoryRecord[];
+  tools?: BoundTools;
 }
 
 /** Candidat de mémoire émis par un agent (le pipeline le distille plus tard). */

@@ -9,7 +9,7 @@ import {
 } from '@agency-os/shared';
 import type { TaskService } from '@agency-os/tasks';
 import type { MessageBus } from '@agency-os/messaging';
-import type { AgentBrain, MemoryRecall, MemorySink, ReportRepository } from './ports.js';
+import type { AgentBrain, McpGatewayPort, MemoryRecall, MemorySink, ReportRepository } from './ports.js';
 import { loadContext } from './context-loader.js';
 import { buildReport } from './report-builder.js';
 import { enforceGuardrails } from './guardrails.js';
@@ -25,6 +25,8 @@ export interface AgentRunnerDeps {
   brainFor: (agent: string) => AgentBrain | undefined;
   recall?: MemoryRecall;
   memory?: MemorySink;
+  /** Passerelle MCP : si fournie, le cerveau reçoit un accès outils borné. */
+  mcp?: McpGatewayPort;
   workerId?: string;
 }
 
@@ -71,6 +73,19 @@ export class AgentRunner {
     }
 
     const context = await loadContext(started, definition, this.deps.recall);
+    // Accès outils MCP borné à cet agent et à cette tâche (permissions appliquées
+    // par la passerelle). `validated: false` : les actions L3 restent gated tant
+    // qu'une Decision d'approbation n'a pas rejoué la tâche.
+    if (this.deps.mcp) {
+      const mcp = this.deps.mcp;
+      context.tools = (server, method, args = {}) =>
+        mcp.call(started.agent, server, method, args, {
+          taskId: started.id,
+          siteId: started.site_id,
+          clientId: started.client_id,
+          validated: false,
+        });
+    }
     const output = await brain.execute(context);
     enforceGuardrails(definition, output);
 

@@ -15,6 +15,7 @@
     "@agency-os/messaging": "workspace:*",
     "@agency-os/agents": "workspace:*",
     "@agency-os/ceo": "workspace:*",
+    "@agency-os/mcp": "workspace:*",
     "@agency-os/backend": "workspace:*",
     "@agency-os/api": "workspace:*"
   },
