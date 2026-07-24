@@ -53,6 +53,12 @@ export class AgentRunner {
       });
     }
 
+    // Idempotence (livraison at-least-once) : on n'exécute qu'une tâche `assigned`.
+    // Un doublon de file sur une tâche déjà prise en charge est ignoré sans effet.
+    if (task.status !== 'assigned') {
+      return this.respond(task, 'ack', `Tâche ignorée (statut ${task.status}, déjà traitée).`, null, 1);
+    }
+
     // Démarrage : assigned → in_progress.
     const started = await this.deps.tasks.start(taskId, this.worker);
 

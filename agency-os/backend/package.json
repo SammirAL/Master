@@ -1,0 +1,36 @@
+{
+  "name": "@agency-os/backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Composition root d'Agency AI OS : câblage DI, orchestrateur, workers",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "demo": "tsx src/demo.ts"
+  },
+  "dependencies": {
+    "@agency-os/shared": "workspace:*",
+    "@agency-os/tasks": "workspace:*",
+    "@agency-os/messaging": "workspace:*",
+    "@agency-os/agents": "workspace:*",
+    "@agency-os/ceo": "workspace:*",
+    "@agency-os/database": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

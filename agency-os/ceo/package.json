@@ -1,0 +1,33 @@
+{
+  "name": "@agency-os/ceo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agent CEO d'Agency AI OS : décision, dispatch, validation (jamais d'exécution)",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agency-os/shared": "workspace:*",
+    "@agency-os/tasks": "workspace:*",
+    "@agency-os/messaging": "workspace:*",
+    "@agency-os/database": "workspace:*",
+    "drizzle-orm": "^0.38.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

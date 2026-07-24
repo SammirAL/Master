@@ -133,4 +133,29 @@ export class TaskService {
     const next: Task = { ...current, result, updated_at: this.clock.nowIso() };
     return this.repo.update(taskSchema.parse(next));
   }
+
+  /**
+   * Enregistre sur la tâche la décision de validation qui la concerne (qui a
+   * décidé, référence `DEC-…`). N'effectue aucune transition d'état : c'est la
+   * traçabilité du lien tâche ↔ décision (auditabilité, P5).
+   */
+  async recordValidation(
+    id: string,
+    decidedBy: NonNullable<NonNullable<Task['validation']>['decided_by']>,
+    decisionId: string,
+  ): Promise<Task> {
+    const current = await this.getOrThrow(id);
+    const now = this.clock.nowIso();
+    const next: Task = {
+      ...current,
+      validation: {
+        required: current.validation?.required ?? true,
+        requested_at: current.validation?.requested_at ?? now,
+        decided_by: decidedBy,
+        decision_id: decisionId,
+      },
+      updated_at: now,
+    };
+    return this.repo.update(taskSchema.parse(next));
+  }
 }

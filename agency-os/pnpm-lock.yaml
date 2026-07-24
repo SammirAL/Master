@@ -55,6 +55,84 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.1)
 
+  api:
+    dependencies:
+      '@agency-os/backend':
+        specifier: workspace:*
+        version: link:../backend
+      '@agency-os/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@agency-os/tasks':
+        specifier: workspace:*
+        version: link:../tasks
+    devDependencies:
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  backend:
+    dependencies:
+      '@agency-os/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@agency-os/ceo':
+        specifier: workspace:*
+        version: link:../ceo
+      '@agency-os/database':
+        specifier: workspace:*
+        version: link:../database
+      '@agency-os/messaging':
+        specifier: workspace:*
+        version: link:../messaging
+      '@agency-os/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@agency-os/tasks':
+        specifier: workspace:*
+        version: link:../tasks
+    devDependencies:
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  ceo:
+    dependencies:
+      '@agency-os/database':
+        specifier: workspace:*
+        version: link:../database
+      '@agency-os/messaging':
+        specifier: workspace:*
+        version: link:../messaging
+      '@agency-os/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@agency-os/tasks':
+        specifier: workspace:*
+        version: link:../tasks
+      drizzle-orm:
+        specifier: ^0.38.3
+        version: 0.38.4(@types/pg@8.20.0)(pg@8.22.0)
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
   database:
     dependencies:
       '@agency-os/shared':
@@ -126,6 +204,37 @@ importers:
       ioredis:
         specifier: ^5.4.2
         version: 5.11.1
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  tests:
+    dependencies:
+      '@agency-os/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@agency-os/api':
+        specifier: workspace:*
+        version: link:../api
+      '@agency-os/backend':
+        specifier: workspace:*
+        version: link:../backend
+      '@agency-os/ceo':
+        specifier: workspace:*
+        version: link:../ceo
+      '@agency-os/messaging':
+        specifier: workspace:*
+        version: link:../messaging
+      '@agency-os/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@agency-os/tasks':
+        specifier: workspace:*
+        version: link:../tasks
     devDependencies:
       typescript:
         specifier: ^5.7.2

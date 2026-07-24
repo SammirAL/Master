@@ -1,0 +1,25 @@
+{
+  "name": "@agency-os/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tests E2E inter-packages d'Agency AI OS",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@agency-os/shared": "workspace:*",
+    "@agency-os/tasks": "workspace:*",
+    "@agency-os/messaging": "workspace:*",
+    "@agency-os/agents": "workspace:*",
+    "@agency-os/ceo": "workspace:*",
+    "@agency-os/backend": "workspace:*",
+    "@agency-os/api": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

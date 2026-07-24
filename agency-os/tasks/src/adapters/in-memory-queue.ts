@@ -11,7 +11,9 @@ export class InMemoryQueue implements QueuePort {
 
   async enqueue(job: QueueJob): Promise<void> {
     this.pending.push(job);
-    void this.drain();
+    // Traitement déterministe : on attend le drain. Réentrance gérée (un
+    // enqueue déclenché pendant un drain laisse le job à la boucle en cours).
+    await this.drain();
   }
 
   process(handler: (job: QueueJob) => Promise<void>): void {
