@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Agency AI OS — Workflow CI (fichier de référence)
+#
+# NOTE : ce fichier n'est PAS encore actif. Lors de l'activation de la CI, le
+# déplacer vers « .github/workflows/ci.yml » (GitHub ne détecte les workflows
+# que dans ce dossier).
+# ─────────────────────────────────────────────────────────────────────────────
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    name: Build, typecheck, tests & contrôles
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Récupération du code.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Installation de pnpm (version alignée sur packageManager).
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # 3. Installation de Node 22 avec cache du store pnpm.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # 4. Installation stricte des dépendances (lockfile figé).
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 5. Compilation de tous les packages.
+      - name: Build
+        run: pnpm build
+
+      # 6. Vérification de types.
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # 7. Tests.
+      - name: Test
+        run: pnpm test
+
+      # 8. Validation des fichiers YAML de définitions + docker-compose.
+      - name: Validate YAML
+        run: pnpm ci:yaml
+
+      # 9. Détection des dépendances circulaires entre packages.
+      - name: Check circular dependencies
+        run: pnpm ci:deps

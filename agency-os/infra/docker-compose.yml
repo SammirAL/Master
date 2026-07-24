@@ -1,0 +1,79 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Agency AI OS — services de développement local (Phase 0)
+# Lancer : docker compose -f infra/docker-compose.yml up -d
+# Les valeurs par défaut restent cohérentes avec /.env.example.
+# (aucune clé « version: » : obsolète avec Docker Compose v2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # PostgreSQL — source de vérité transactionnelle (Drizzle).
+  postgres:
+    image: postgres:16-alpine
+    container_name: agency-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agency}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agency}
+      POSTGRES_DB: ${POSTGRES_DB:-agency_os}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Le double « $$ » évite l'interpolation par Compose : la variable est
+      # résolue à l'intérieur du conteneur.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-agency}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Redis — files BullMQ, verrous distribués et cache.
+  redis:
+    image: redis:7-alpine
+    container_name: agency-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      # « redis-cli ping » doit répondre PONG lorsque le serveur est prêt.
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Qdrant — mémoire vectorielle (embeddings, recherche sémantique).
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: agency-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+    healthcheck:
+      # L'image qdrant est distroless (pas de wget/curl) : on teste l'ouverture
+      # du port 6333 via le pseudo-fichier /dev/tcp du shell bash embarqué.
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333'"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # n8n — orchestration de workflows externes (phases ultérieures).
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: agency-n8n
+    environment:
+      N8N_PORT: 5678
+      # Cookie sécurisé désactivé pour le dev local (HTTP, pas de TLS).
+      N8N_SECURE_COOKIE: "false"
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8ndata:/home/node/.n8n
+
+# Volumes nommés persistants (survivent aux « docker compose down »).
+volumes:
+  pgdata:
+  redisdata:
+  qdrantdata:
+  n8ndata:

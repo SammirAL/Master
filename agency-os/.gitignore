@@ -1,0 +1,33 @@
+# Dépendances
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Tests / couverture
+coverage/
+
+# Environnement
+.env
+.env.local
+.env.*.local
+
+# Données d'exécution (workspaces par site/client, artefacts)
+data/sites/
+data/clients/
+data/artifacts/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / éditeurs
+.DS_Store
+.idea/
+.vscode/

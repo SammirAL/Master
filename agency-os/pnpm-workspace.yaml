@@ -1,0 +1,17 @@
+packages:
+  - 'shared'
+  - 'database'
+  # Les packages suivants sont livrés dans les phases ultérieures (cf. docs/06-plan-de-developpement.md) :
+  # - 'ceo'
+  # - 'agents'
+  # - 'councils'
+  # - 'memory'
+  # - 'clients'
+  # - 'sites'
+  # - 'reports'
+  # - 'tasks'
+  # - 'workflows'
+  # - 'mcp'
+  # - 'api'
+  # - 'backend'
+  # - 'frontend'
