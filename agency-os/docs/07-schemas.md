@@ -124,7 +124,7 @@ Toute communication passe par le bus de messages (jamais d'appel direct agent→
 ```jsonc
 {
   "id": "MSG-20260724-…",
-  "from": "ceo",                   // slug émetteur ("ceo", "system", "human:<id>", "<agent-slug>")
+  "from": "ceo",                   // slug émetteur ("ceo", "system", "human:<id>", "<agent-slug>", "council:<slug>")
   "to": "seo-strategist",          // slug destinataire ou "council:<slug>"
   "type": "task_assignment",       // task_assignment | status_update | report_submission |
                                    // validation_request | validation_response | info_request |

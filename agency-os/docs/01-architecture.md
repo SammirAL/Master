@@ -219,14 +219,14 @@ Chaque agent est défini par un fichier YAML (validé par schéma) + un prompt
 système versionné dans `prompts/` :
 
 ```yaml
-# agents/<slug>/agent.yaml (extrait)
+# agents/definitions/<slug>/agent.yaml (extrait)
 slug: seo-strategist
 name: SEO Strategist
 model: { tier: reasoning }          # tier → modèle concret via config globale
 prompt: prompts/agents/seo-strategist/system.md
 mcp_allowlist: [gsc, ga4, firecrawl, brave-search, exa, qdrant]
 permissions: { level: propose }     # cf. niveaux §9.3
-autonomies: [read_analytics, competitor_watch]
+autonomies: [read_analytics, keyword_watch]
 kpis: [organic_traffic_delta, keyword_positions, audit_coverage]
 limits: { max_tokens_per_task: …, max_mcp_calls_per_task: …, budget_month: … }
 report_format: standard             # unique et obligatoire (P4)
@@ -251,7 +251,7 @@ Chaque étape émet des événements horodatés dans `task.logs` et le journal d
 
 ## 7. Moteur de tâches
 
-Schéma complet dans [07-schemas.md](07-schemas.md#task). Points structurants :
+Schéma complet dans [07-schemas.md](07-schemas.md#1-task--la-tâche). Points structurants :
 
 - **Files par agent et par site** (BullMQ) : `queue:{agent}:{site}` — l'isolation
   par site évite qu'un site monopolise un agent (équité multi-sites, P6/P7).
@@ -272,8 +272,12 @@ stateDiagram-v2
     rejected --> in_progress: révision demandée
     in_progress --> done: rapport validé
     in_progress --> failed: erreur terminale
+    draft --> cancelled: annulation CEO/humain (motif obligatoire)
+    assigned --> cancelled: annulation CEO/humain (motif obligatoire)
+    blocked --> cancelled: annulation CEO/humain (motif obligatoire)
     done --> [*]
     failed --> [*]: escalade CEO
+    cancelled --> [*]
 ```
 
 - **Historique immuable** : chaque transition = un événement (qui, quoi, quand,
@@ -311,7 +315,7 @@ Collections Qdrant par domaine, payload systématique
 
 Le **Memory Manager** est le seul agent avec écriture directe sur Qdrant :
 les autres émettent des `MemoryRecord` candidats que le pipeline distille,
-déduplique, vectorise et range. La **Knowledge Manager** organise le savoir
+déduplique, vectorise et range. Le **Knowledge Manager** organise le savoir
 transverse (procédures, guides, référentiels métier).
 
 ---

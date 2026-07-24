@@ -308,7 +308,7 @@ Interlocuteurs principaux de chaque agent (hors CEO et PM, qui parlent à tous).
 | `competitor-analyst` | `seo-strategist`, `marketing-expert`, `memory-manager` | Veille, benchmarks, alimentation de `mem_competitors` |
 | `security-expert` | `developer`, `ceo` (alertes), `automation-engineer` | Propose, ne corrige jamais ; siège release/crisis-council |
 | `automation-engineer` | `developer`, `project-manager`, `security-expert` | Workflows n8n, intégrations, revue avant activation L3 |
-| `memory-manager` | tous (en réception), `knowledge-manager` | Reçoit les `MemoryRecord` candidats, seul écrivain Qdrant |
+| `memory-manager` | tous (en réception), `knowledge-manager` | Reçoit les `MemoryRecord` candidats, écrit directement dans Qdrant ; avec le `knowledge-manager` qui, lui, écrit via le pipeline, ce sont les seuls à alimenter Qdrant |
 | `quality-reviewer` | `content-writer`, `developer`, `marketing-expert`, `ceo` | Revue de tout livrable avant validation CEO |
 | `brand-guardian` | `content-writer`, `marketing-expert`, `sales-expert`, `ceo` | Ton, style, promesses, interdits éditoriaux |
 | `knowledge-manager` | `memory-manager`, `project-manager`, tous | Procédures, guides, référentiels transverses |
@@ -328,8 +328,11 @@ Appliquées par le bus de messages et le moteur de tâches (code, pas prompt) :
    émet `system → ceo : escalation`. Aucune boucle infinie de
    question/réponse n'est possible.
 3. **Pas de délégation en cascade non tracée** : un agent ne crée jamais de
-   tâche pour un autre. Seuls `ceo` (task-dispatcher), `workflow-engine` et
-   `project-manager` (replanification interne) créent des `Task` ;
+   tâche pour un autre. Le `project-manager` ne crée pas directement de `Task` :
+   il propose des plans de tâches que le task-dispatcher du `ceo` instancie.
+   Seuls trois créateurs directs de `Task` existent — le `ceo`
+   (task-dispatcher, `created_by: ceo`), le `workflow-engine`
+   (`created_by: workflow:<id>`) et l'humain (`created_by: human:<id>`) ;
    `created_by` l'atteste. Un besoin d'aide s'exprime en `info_request` ou en
    `blocked` avec `needs[]` — jamais en sous-traitance silencieuse.
 4. **Silence ⇒ relance PM ⇒ escalade CEO** : une tâche `in_progress` sans

@@ -105,8 +105,13 @@ flowchart LR
 Points structurants :
 
 - **Candidats** : tout agent peut proposer des souvenirs, mais uniquement sous
-  forme de `MemoryRecord` candidats listés dans `result.memory_candidates` ;
-  aucune écriture directe (matrice MCP : seul Memory Manager a `Qdrant RW`).
+  forme de `MemoryRecord` candidats listés dans `result.memory_candidates`. Le
+  Memory Manager est le **seul** agent à écrire **directement** dans Qdrant
+  (appel MCP Qdrant en écriture, portée `Qdrant RW` dans la matrice MCP). Le
+  Knowledge Manager, lui, écrit **exclusivement via le pipeline mémoire**
+  (portée `PIPE` dans la matrice : il émet des enregistrements que le pipeline
+  range dans Qdrant), jamais par un appel MCP Qdrant direct. Les autres agents
+  n'émettent que des `MemoryRecord` candidats, sans aucune écriture directe.
 - **Distillation** : `distiller.ts` utilise le palier `fast` (Memory Manager)
   et les prompts de `prompts/pipeline/` ; les faits gardent `source_refs`
   (`RPT-…`, `TSK-…`), `confidence` et `valid_until` (null = durable).
@@ -171,10 +176,10 @@ flowchart TB
     CHECK -->|"KO : rollback + incident"| DEV
     CHECK --> J7["Mesure J+7 — Data Analyst<br/>(étape measure, delay: 7d)<br/>sections.kpis avant/après"]
 
-    SPEC2["Contenu : Content Writer"] --> DRAFT["Brouillon WordPress/Shopify — L2<br/>(portée draft-only)"]
+    SPEC2["Contenu : Content Writer"] --> DRAFT["Brouillon WordPress/Shopify<br/>Content Writer (MCP CMS, S)<br/>dépôt de brouillon — autonomie déléguée"]
     DRAFT --> REV["Revues Quality Reviewer<br/>+ Brand Guardian"]
     REV --> GATE
-    GATE -->|"approve (contenu)"| PUB["Publication CMS — L3"]
+    GATE -->|"approve (contenu)"| PUB["Publication CMS — L3<br/>Content Writer (MCP CMS, P)<br/>après validation CEO"]
     PUB --> J7
 ```
 
@@ -192,6 +197,12 @@ Précisions :
   humaine (`decided_by: "human:<user_id>"`).
 - La vérification post-déploiement (Playwright) et la mesure J+7 ferment la
   boucle : leurs preuves vont dans `data/artifacts/` et `sections.kpis`.
+- Chemin CMS : le **Content Writer** dépose les brouillons WordPress/Shopify de
+  façon autonome (portée `S`, autonomie déléguée). La **publication en
+  production** est exécutée par le Content Writer avec la portée `P` sur
+  WordPress **et** Shopify (acte L3, non délégué), **uniquement après la
+  validation CEO** (`approve` du gate). L'autonomie déléguée reste limitée aux
+  brouillons ; la publication n'est jamais déléguée.
 
 ---
 

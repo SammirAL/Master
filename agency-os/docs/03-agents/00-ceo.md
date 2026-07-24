@@ -274,7 +274,7 @@ Toujours remontées à l'humain via le dashboard (politique appliquée par
 | `mem_agents` | Oui | Oui | Fiabilité observée par agent (ex. « les estimations d'effort du Developer sur WordPress sont sous-évaluées ») |
 | `mem_seo_campaigns` | Oui | Non | Résultats des campagnes passées pour arbitrer les nouvelles propositions SEO |
 
-Rappel : seuls `memory-manager` et `knowledge-manager` écrivent dans Qdrant.
+Rappel : seuls le `memory-manager` (écriture directe) et le `knowledge-manager` (via le pipeline mémoire, sans appel MCP direct) alimentent Qdrant.
 Le CEO n'y écrit jamais : « alimentée » signifie qu'il émet des `MemoryRecord`
 candidats (issus notamment de chaque `Decision`), que le pipeline mémoire
 distille, déduplique, vectorise et range.

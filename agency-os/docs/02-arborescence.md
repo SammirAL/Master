@@ -114,12 +114,12 @@ agency-os/
 │   ├── package.json
 │   ├── src/
 │   │   ├── council-runner.ts         # Convoque N agents, collecte les avis, synthétise
-│   │   ├── protocols.ts              # Règles de délibération (quorum, vote, synthèse)
-│   │   └── definitions/
-│   │       ├── quality-council.yaml  # Quality Reviewer + Brand Guardian + agent concerné
-│   │       ├── seo-council.yaml      # SEO Strategist + Technical SEO + Competitor Analyst
-│   │       ├── release-council.yaml  # Developer + Security Expert + Quality Reviewer
-│   │       └── crisis-council.yaml   # Comité d'incident (P0) : PM + Security + Developer
+│   │   └── protocols.ts              # Règles de délibération (quorum, vote, synthèse)
+│   ├── definitions/
+│   │   ├── quality-council.yaml      # Quality Reviewer + Brand Guardian + agent concerné
+│   │   ├── seo-council.yaml          # SEO Strategist + Technical SEO + Competitor Analyst
+│   │   ├── release-council.yaml      # Developer + Security Expert + Quality Reviewer
+│   │   └── crisis-council.yaml       # Comité d'incident (P0) : PM + Security + Developer
 │   └── test/
 │
 ├── memory/                           # ── MOTEUR DE MÉMOIRE
@@ -236,7 +236,9 @@ agency-os/
 │   ├── package.json
 │   ├── schema/                       # Schéma Drizzle (source de vérité SQL)
 │   │   ├── clients.ts • sites.ts • tasks.ts • reports.ts
-│   │   ├── decisions.ts • agents-state.ts • audit-log.ts
+│   │   ├── decisions.ts
+│   │   ├── agents-state.ts           # état + historique par agent : runs, taux de succès, coûts LLM/MCP cumulés, dernier heartbeat, état du kill switch
+│   │   ├── audit-log.ts
 │   │   ├── kpis.ts • competitors.ts • keywords.ts • memory-index.ts
 │   ├── migrations/                   # Migrations SQL générées et versionnées
 │   ├── seeds/                        # Données de démarrage (agents, workflows, site pilote)

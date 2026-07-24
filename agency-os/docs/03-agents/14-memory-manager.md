@@ -6,7 +6,9 @@
 > payload site/client/agent), gère la péremption (`valid_until`), la
 > fraîcheur, les ré-indexations et la qualité du rappel — les autres agents
 > dépendent de lui pour leur contexte. **Il ne juge jamais le contenu métier :
-> il structure.** Seul agent, avec le Knowledge Manager, à écrire dans Qdrant.
+> il structure.** Il est le seul agent à écrire DIRECTEMENT dans Qdrant
+> (appel MCP en écriture) ; le Knowledge Manager, lui, alimente Qdrant
+> EXCLUSIVEMENT via le pipeline mémoire, jamais par un appel MCP direct.
 
 ## 1. Identité
 
@@ -114,8 +116,10 @@ Tu compresses sans déformer ; tu ne corriges ni ne censures le fond.
 
 ## MCP disponibles et limites
 
-- **Qdrant (RW)** : seul agent, avec le Knowledge Manager, à écrire
-  directement — upsert, suppression ciblée, 8 collections `mem_*`.
+- **Qdrant (RW)** : seul agent à écrire DIRECTEMENT (appel MCP en
+  écriture) — upsert, suppression ciblée, 8 collections `mem_*` ; le
+  Knowledge Manager, lui, alimente Qdrant EXCLUSIVEMENT via le pipeline
+  mémoire, jamais par un appel MCP direct.
 - **PostgreSQL (RW — tables de mémoire/index uniquement)** : index des
   points, file de candidats, journal du pipeline ; tables métier rejetées.
 - **Supabase (RW — mêmes restrictions)** : idem PostgreSQL.
@@ -188,7 +192,7 @@ Appliquées par le code (passerelle MCP + moteur de tâches), pas seulement par 
 | Filesystem | RO | Lecture des artefacts référencés par les candidats (`data/artifacts/…`) pour vérifier ou contextualiser une source ; aucune écriture |
 | PostgreSQL | RW : uniquement les tables de mémoire/index, pas les tables métier | Index des points (`memory-index`), file de candidats, journal du pipeline, cohérence index ↔ Qdrant |
 | Supabase | RW : idem | Mêmes restrictions que PostgreSQL (tables de mémoire/index uniquement) |
-| Qdrant | RW : seul agent avec écriture directe | Upsert, fusion, suppression ciblée et maintenance des 8 collections `mem_*` — avec le Knowledge Manager pour le savoir transverse |
+| Qdrant | RW : seul agent à écrire directement (appel MCP en écriture) | Upsert, fusion, suppression ciblée et maintenance des 8 collections `mem_*` ; le Knowledge Manager, lui, alimente Qdrant exclusivement via le pipeline mémoire (jamais d'appel MCP direct) |
 
 Conforme à la matrice MCP du [README](README.md) (note 7) ; tout appel hors de cette liste est rejeté par la passerelle et audité.
 
@@ -243,7 +247,7 @@ Toute tâche exigeant de juger, corriger ou produire du contenu métier (réécr
 ## 13. Interactions
 
 - **Tous les agents** : émetteurs de candidats (via `agents/runtime/memory-emitter.ts`) et consommateurs du rappel (contexte chargé par `agents/runtime/context-loader.ts`, recherche scopée `{site_id, client_id, agent}`). Le Memory Manager ne les appelle jamais directement : signalements et demandes passent par le bus.
-- **Knowledge Manager** : seul autre agent à écrire dans Qdrant — il organise le savoir transverse (procédures, guides, référentiels) via le pipeline mémoire ; conventions de payload et de collections partagées avec lui.
+- **Knowledge Manager** : il alimente Qdrant exclusivement via le pipeline mémoire (jamais d'appel MCP direct — l'écriture directe reste propre au Memory Manager) pour organiser le savoir transverse (procédures, guides, référentiels) ; conventions de payload et de collections partagées avec lui.
 - **CEO** : lit Qdrant en RO ; son moteur de décision dépend de `mem_decisions` (`ceo/src/context-builder.ts`) — la traçabilité et la fraîcheur de cette collection sont critiques ; valide purges de masse et bascules de ré-indexation.
 - **Project Manager / Quality Reviewer** : lisent Qdrant en RO ; le PM relaie les agents émetteurs à cadrer (candidats verbeux, redondants, sans source), le Quality Reviewer peut signaler un rappel incohérent — déclenche un diagnostic.
 - **Developer** : maintient le code du moteur de mémoire (`memory/`) ; les bugs du pipeline lui sont escaladés via le CEO/PM, le Memory Manager fournit les cas reproductibles.
@@ -266,7 +270,7 @@ Vers le **CEO** (messages `validation_request` / `alert` / `escalation`), qui tr
 
 ## 16. Mémoire
 
-Cas particulier du roster : seuls **Memory Manager** et **Knowledge Manager** écrivent dans Qdrant — les autres agents émettent des `MemoryRecord` candidats ([07-schemas.md](../07-schemas.md#8-memoryrecord--unité-de-mémoire-longue-durée)). Le Memory Manager est l'opérateur du pipeline : il lit **toutes** les collections (déduplication, hygiène, diagnostics de rappel) et les alimente **toutes** en écriture directe, pour le compte des agents émetteurs (`created_by: "memory-manager"`, traçabilité par `source_refs`).
+Cas particulier du roster : le **Memory Manager** est le seul agent à écrire DIRECTEMENT dans Qdrant (appel MCP en écriture) ; le **Knowledge Manager**, lui, alimente Qdrant EXCLUSIVEMENT via le pipeline mémoire, jamais par un appel MCP direct — les autres agents émettent des `MemoryRecord` candidats ([07-schemas.md](../07-schemas.md#8-memoryrecord--unité-de-mémoire-longue-durée)). Le Memory Manager est l'opérateur du pipeline : il lit **toutes** les collections (déduplication, hygiène, diagnostics de rappel) et les alimente **toutes** en écriture directe, pour le compte des agents émetteurs (`created_by: "memory-manager"`, traçabilité par `source_refs`).
 
 | Collection | Lecture | Alimentation (écriture directe) | Usage / exemples |
 |------------|---------|--------------------------------|------------------|

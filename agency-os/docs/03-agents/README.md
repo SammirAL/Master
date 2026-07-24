@@ -55,7 +55,8 @@ Chaque fiche suit exactement ce plan :
 ## Matrice MCP (agent × serveur × portée)
 
 Légende : `RO` lecture seule · `S` staged (brouillon / branche / sandbox — L2) ·
-`P` production derrière validation (L3) · `RW` lecture-écriture directe · vide = interdit.
+`P` production derrière validation (L3) · `RW` lecture-écriture directe ·
+`PIPE` écriture indirecte via le pipeline mémoire (aucun appel MCP direct) · vide = interdit.
 La matrice est **appliquée par la passerelle MCP** (`mcp/permission-matrix.ts`) ;
 toute tentative hors matrice est rejetée et auditée.
 
@@ -65,7 +66,7 @@ toute tentative hors matrice est rejetée et auditée.
 | Project Manager | | | | | | | | | | RO | | | RO | | | | | | RO |
 | SEO Strategist | | | | RO | RO | RO | | | | | | | RO | RO | RO | | | | |
 | Technical SEO | RO | RO | RO | RO | RO | | | | | | | | | | | | | | |
-| Content Writer | | | | | | | | S | S | | | | RO | RO | RO | | | | |
+| Content Writer | | | | | | | | S+P⁹ | S+P⁹ | | | | RO | RO | RO | | | | |
 | Developer | S+P | RW¹ | RO² | | | | | | | S³ | S³ | | | | | | S | S | |
 | UX Expert | | | RO | RO | | RO | | | | | | | | | | | | | |
 | CRO Expert | | | RO | | | RO | | | | RO | | | | | | RO | | | |
@@ -78,7 +79,7 @@ toute tentative hors matrice est rejetée et auditée.
 | Memory Manager | | RO | | | | | | | | RW⁷ | | RW⁷ | RW | | | | | | |
 | Quality Reviewer | RO | RO | RO | RO | | | | RO | RO | | | | RO | | | | | | |
 | Brand Guardian | | RO | | RO | | | | RO | RO | | | | RO | | | | | | |
-| Knowledge Manager | | RW⁸ | | | | | | | | RO | | | RW⁸ | RO | RO | | | | |
+| Knowledge Manager | | RW⁸ | | | | | | | | RO | | | PIPE⁸ | RO | RO | | | | |
 
 Notes de portée :
 1. `Filesystem` Developer : limité au workspace du site (`data/sites/<site_id>/`), jamais hors périmètre.
@@ -88,7 +89,16 @@ Notes de portée :
 5. `Shopify` Sales Expert : lecture libre ; changements de prix/offres = L3.
 6. `Docker`/`Terminal` Security Expert : sandbox d'analyse uniquement (scans, SCA), aucun accès aux environnements des sites.
 7. `PostgreSQL`/`Supabase` Memory Manager : uniquement les tables de mémoire/index — pas les tables métier.
-8. Knowledge Manager : écrit dans l'espace documentaire (`data/`) et les collections de connaissance, via le pipeline mémoire.
+8. Knowledge Manager : `Filesystem` RW⁸ = écriture directe dans l'espace documentaire (`data/`) ; `Qdrant` PIPE⁸ = écriture via le pipeline mémoire uniquement (jamais en direct — seul le Memory Manager écrit directement dans Qdrant).
+9. Content Writer WordPress/Shopify : S = dépôt de brouillons (autonomie déléguée) ; P = publication en production, acte L3 uniquement après validation CEO (jamais délégué).
+
+### Historique par agent
+
+L'historique de chaque agent est constitué par agrégation de trois sources : le journal
+d'audit (`audit-log`) filtré par agent ; la table `agents-state` (runs, taux de succès,
+coûts cumulés, dernier heartbeat, état du kill switch) ; et les `task.history` des tâches
+qu'il a exécutées. C'est cette agrégation qui matérialise l'exigence « chaque agent a son
+historique » du cahier des charges.
 
 ---
 
@@ -110,7 +120,7 @@ Principe P2 : tout le reste requiert validation. Liste exhaustive par agent :
 | Data Analyst | Toute lecture analytique ; production de tableaux de bord |
 | Competitor Analyst | Toute veille en lecture seule |
 | Security Expert | Scans en sandbox ; alerte P0 immédiate (court-circuite la file, pas la validation) |
-| Automation Engineer | Création de workflows n8n **désactivés** ; l'activation est L3 |
+| Automation Engineer | Création de workflows n8n **désactivés** ; l'activation est L3 ; désactivation d'urgence d'un workflow n8n défaillant (retour à l'état sûr) + alerte immédiate |
 | Memory Manager | Tout le pipeline mémoire (distiller, vectoriser, ranger, nettoyer les doublons) |
 | Quality Reviewer | Toute revue ; blocage d'un livrable non conforme (le déblocage se joue au niveau CEO) |
 | Brand Guardian | Toute revue de conformité de marque ; blocage comme ci-dessus |

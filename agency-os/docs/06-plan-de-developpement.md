@@ -81,7 +81,7 @@ permissions par le code (P3), audit de chaque appel (P5), secrets jamais exposé
 
 **Livrables.**
 - `mcp/src/` : `gateway.ts`, `permission-matrix.ts` (matrice de 03-agents/README.md encodée), `scopes.ts` (`draft-only`, `branch-only`, `read-only`…), `quotas.ts`, `audit-log.ts`, `credentials-broker.ts` ; `mcp/registry/servers.yaml` + son schéma.
-- Premiers connecteurs dans `mcp/src/servers/` : `filesystem.ts`, `github.ts`, `firecrawl.ts`, `playwright.ts`, `gsc.ts`, `ga4.ts`, `qdrant.ts` ; tests de violation d'allowlist dans `mcp/test/`.
+- Premiers connecteurs dans `mcp/src/servers/` : `filesystem.ts`, `github.ts`, `firecrawl.ts`, `playwright.ts`, `gsc.ts`, `ga4.ts`, `qdrant.ts`, `wordpress.ts`, `shopify.ts`, `brave-search.ts`, `exa.ts`, `postgresql.ts`, `mysql.ts`, `docker.ts`, `terminal.ts` — de quoi couvrir les allowlists des agents livrés en Phase 3 — plus le Dockerfile de sandbox `infra/docker/sandbox/Dockerfile` ; tests de violation d'allowlist dans `mcp/test/`.
 
 **Dépendances.** Phases 0, 1 (le runtime appelle la passerelle via son port `mcp-gateway`).
 
@@ -118,12 +118,13 @@ tourne sur un site pilote, supervisé depuis un dashboard v0.
 **Dépendances.** Phases 0, 1, 2.
 
 **Critères de sortie.**
-- [ ] `tests/e2e/seo-cycle.e2e.ts` vert : `full-seo-cycle` complet, LLM mocké, site fixture — gates `ceo_gate` et `publish_gate` respectés, `permission_level` L2 puis L3 appliqués.
+- [ ] `tests/e2e/seo-cycle.e2e.ts` vert : `seo-audit.yaml` puis le chemin audit → technique → propositions → validation CEO → développement → publication (agents Project Manager, SEO Strategist, Technical SEO, Content Writer, Developer), LLM mocké, site fixture — gates `ceo_gate` et `publish_gate` respectés, `permission_level` L2 puis L3 appliqués. Le workflow full-seo-cycle complet (avec les étapes concurrents et mesure analytics) est assemblé et testé en Phase 5, une fois competitor-analyst et data-analyst livrés.
 - [ ] `tests/e2e/validation-gate.e2e.ts` toujours vert avec les vrais agents (non-régression) ; les 5 `agent.yaml` valident contre `shared/src/schemas/agent-definition.ts` en CI.
 - [ ] `seo-audit.yaml` exécuté avec LLM réel sur le site pilote : rapport `Report` conforme, annexes dans `data/artifacts/`.
 - [ ] Frontend v0 : approbation d'une validation depuis la file → la tâche repart, le kanban se met à jour en temps réel.
 
-**Démonstration.** Déclenchement manuel de `full-seo-cycle` sur le site pilote :
+**Démonstration.** Déclenchement manuel de `seo-audit.yaml` sur le site pilote, puis
+du chemin audit → technique → propositions → validation CEO → développement → publication :
 l'utilisateur suit le kanban, approuve les deux gates dans la file de validation,
 et lit le rapport final du Project Manager.
 
@@ -151,7 +152,7 @@ rapports agrégés — le rappel sémantique alimente désormais chaque contexte
 
 **Critères de sortie.**
 - [ ] Pipeline complet testé : candidats émis par `memory-emitter` → distillation → déduplication → écriture Qdrant avec payload `{site_id, client_id, agent, type, date, source_ref}`.
-- [ ] Rappel scopé : un agent du site A ne récupère jamais un souvenir du site B ; Memory Manager = seul écrivain Qdrant, toute écriture directe d'un autre agent est rejetée par la passerelle (tests).
+- [ ] Rappel scopé : un agent du site A ne récupère jamais un souvenir du site B ; Memory Manager = seul agent autorisé à écrire DIRECTEMENT dans Qdrant ; toute écriture Qdrant directe d'un autre agent est rejetée par la passerelle (test). À partir de la Phase 6, le Knowledge Manager alimente Qdrant via le pipeline mémoire, sans appel MCP direct.
 - [ ] `reports/src/validator.ts` rejette tout écart au format unique ; `aggregator` produit un hebdo correct sur fixtures ; `weekly-report.yaml` tourne sur le site pilote et exporte en Markdown et PDF.
 
 **Démonstration.** Après deux cycles SEO, l'utilisateur interroge l'explorateur
@@ -182,6 +183,7 @@ le moteur conversion complet devient opérationnel.
 - [ ] Les 6 `agent.yaml` valident en CI ; matrice MCP étendue couverte par `tests/e2e/mcp-permissions.e2e.ts` (ex. Marketing Expert : lecture Ads libre, création de campagne = L3 escaladée à l'humain).
 - [ ] `conversion-audit.yaml` E2E sur fixtures : hypothèses priorisées impact × effort × risque dans `recommandations`.
 - [ ] `ab-test-cycle.yaml` : hypothèse → implémentation L2 → mesure avant/après par Data Analyst → décision CEO tracée ; toute dépense (Ads, Stripe, prix Shopify) déclenche l'escalade humaine (test dédié).
+- [ ] `full-seo-cycle.yaml` complet assemblé et testé en E2E (`tests/e2e/seo-cycle.e2e.ts` étendu) : les étapes concurrents (competitor-analyst) et mesure analytics (data-analyst), désormais livrés, complètent le chemin audit → technique → propositions → validation CEO → développement → publication.
 
 **Démonstration.** `conversion-audit` sur le site pilote : tunnel analysé,
 hypothèses priorisées soumises au CEO, une hypothèse implémentée en staging,
@@ -203,7 +205,7 @@ obligatoires, conseils multi-agents, workflows dev et ops.
 **Livrables.**
 - Définitions + prompts : `agents/definitions/security-expert/agent.yaml`, `automation-engineer/agent.yaml`, `quality-reviewer/agent.yaml`, `brand-guardian/agent.yaml`, `knowledge-manager/agent.yaml` (fiches 12→17 ; memory-manager livré en phase 4).
 - Connecteurs restants : `mcp/src/servers/mysql.ts`, `docker.ts`, `terminal.ts`, `n8n.ts` (sandbox Security/Developer via `infra/docker/sandbox/Dockerfile`).
-- `councils/src/council-runner.ts`, `protocols.ts` et les 4 définitions : `councils/src/definitions/quality-council.yaml`, `seo-council.yaml`, `release-council.yaml`, `crisis-council.yaml` ; `prompts/councils/<slug>.md`.
+- `councils/src/council-runner.ts`, `protocols.ts` et les 4 définitions : `councils/definitions/quality-council.yaml`, `seo-council.yaml`, `release-council.yaml`, `crisis-council.yaml` ; `prompts/councils/<slug>.md`.
 - Revues obligatoires branchées dans les workflows existants (Quality Reviewer + Brand Guardian avant toute validation CEO de livrable) ; `workflows/definitions/dev/bugfix.yaml`, `dev/dependency-update.yaml`, `ops/incident-response.yaml`.
 
 **Dépendances.** Phases 0–5.
@@ -295,7 +297,7 @@ alerte, kill switch, reprise, post-mortem — dashboards et journal d'audit à l
 |-------|-----|----------------------|-----------|--------|
 | 0 | Fondations | Monorepo + schémas + DB + compose + CI verts | — | M |
 | 1 | Noyau d'orchestration | Cycle de vie complet d'une tâche, agent factice | 0 | L |
-| 2 | Passerelle MCP | Permissions appliquées par le code, audit, 7 connecteurs | 0–1 | L |
+| 2 | Passerelle MCP | Permissions appliquées par le code, audit, 15 connecteurs + sandbox | 0–1 | L |
 | 3 | Vague SEO | Cycle SEO complet sur site pilote + frontend v0 | 0–2 | XL |
 | 4 | Mémoire & rapports | Mémoire vectorielle + rapports agrégés + frontend v1 | 0–3 | L |
 | 5 | Vague Croissance | Moteur conversion + marketing (agents 6–11) | 0–4 | XL |

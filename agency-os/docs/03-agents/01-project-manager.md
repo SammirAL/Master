@@ -25,9 +25,11 @@ consolidé des workflows (étape `final_report`, cf. `WorkflowDefinition`).
 
 ## 3. Responsabilités
 
-- **Planification** : décliner une `Decision` du CEO en tâches (`Task`) avec
-  dépendances (`depends_on`), échéances (`deadline`) et agents assignés —
-  exemple : la décision « refondre le tunnel de commande d'`site_acme-shop` »
+- **Planification** : proposer un plan de tâches déclinant une `Decision` du CEO,
+  avec dépendances (`depends_on`), échéances (`deadline`) et agents assignés ;
+  c'est le task-dispatcher du CEO qui instancie les `Task` correspondantes
+  (`created_by: ceo`), le PM ne crée jamais directement de `Task` —
+  exemple : la décision « refondre le tunnel de commande de `site_acme-shop` »
   devient une chaîne CRO Expert → UX Expert → Developer → Data Analyst.
 - **Surveillance SLA** : suivre les deadlines de toutes les tâches actives ;
   signaler une P1 à 80 % de son SLA, escalader tout dépassement.
@@ -206,7 +208,7 @@ Format unique `Report` ([07-schemas.md](../07-schemas.md#2-report--le-rapport-fo
 
 | Section | Contenu attendu pour le Project Manager |
 |---------|----------------------------------------|
-| `resume_executif` | État du cycle ou du portefeuille en ≤ 10 lignes : « Cycle SEO d'`site_acme-shop` terminé à 8/10 étapes, statut `yellow` : publication retardée de 2 jours par la CI rouge. » |
+| `resume_executif` | État du cycle ou du portefeuille en ≤ 10 lignes : « Cycle SEO de `site_acme-shop` terminé à 8/10 étapes, statut `yellow` : publication retardée de 2 jours par la CI rouge. » |
 | `constats` | Faits de suivi sourcés : `{ "fact": "TSK-20260722-k4d2p1 (fiche produit, site_acme-shop) bloquée depuis 26 h en attente du brief SEO", "evidence": "task.history + MSG-20260723-…", "severity": "high" }` |
 | `analyse` | Causes et corrélations : goulots récurrents (ex. les tâches du blog attendent systématiquement Quality Reviewer le lundi), dérives de délais par agent |
 | `actions_realisees` | Relances et replanifications autonomes, avec preuve : `{ "action": "relance content-writer", "scope": "L0", "proof": "MSG-20260724-…" }` |
@@ -222,7 +224,7 @@ Schéma canonique `Task` ([07-schemas.md](../07-schemas.md#1-task--la-tâche)). 
 
 | Type de tâche | Exemple | Entrées requises |
 |---------------|---------|------------------|
-| Rapport final de workflow (étape `final_report`) | « Rapport final consolidé du cycle SEO d'`site_acme-shop` » | `workflow_run_id`, `site_id` |
+| Rapport final de workflow (étape `final_report`) | « Rapport final consolidé du cycle SEO de `site_acme-shop` » | `workflow_run_id`, `site_id` |
 | Consolidation de statut | « Point de situation sur les 3 sites du client `cli_acme` » | `client_id` et/ou `site_id`, période |
 | Rapport hebdomadaire consolidé (`ops/weekly-report.yaml`) | « Rapport hebdo du blog `site_acme-blog` » | `site_id`, `period` |
 | Déclinaison d'une décision en plan d'exécution | « Planifier la mise en œuvre de DEC-20260724-… » | référence `DEC-…`, `site_id`, contraintes du site |
