@@ -1,0 +1,3 @@
+[submodule "fonr/vendor/kinetics"]
+	path = fonr/vendor/kinetics
+	url = https://github.com/ckissi/kinetics.git
