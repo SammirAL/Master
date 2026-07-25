@@ -4,7 +4,7 @@ Espace de travail du projet **fonr** — plateforme de facturation électronique
 
 ## Bibliothèque de mouvement — Kinetics
 
-`fonr/vendor/kinetics/` est un **sous‑module git** pointant vers
+`fonr/vendor/kinetics/` est une **copie vendorée** de
 [github.com/ckissi/kinetics](https://github.com/ckissi/kinetics) : une galerie de
 **117 micro‑interactions en spring‑physics**, chacune fournie avec démo, lecture de
 paramètres physiques, et code **CSS + React** prêt à copier.
@@ -12,10 +12,15 @@ paramètres physiques, et code **CSS + React** prêt à copier.
 C'est la **référence de mouvement** du projet : quand une animation / un toggle /
 une micro‑interaction de qualité est demandé, on s'en inspire au lieu de réinventer.
 
-### Récupérer / mettre à jour le sous‑module
+Les fichiers sont **présents directement dans le repo** (pas de sous‑module) — donc
+toujours disponibles, y compris dans un environnement cloud éphémère, sans étape
+d'initialisation.
+
+### Mettre à jour depuis l'upstream (optionnel)
 ```bash
-git submodule update --init --recursive        # après un clone
-git -C fonr/vendor/kinetics pull origin main    # mise à jour vers l'upstream
+git clone --depth 1 https://github.com/ckissi/kinetics.git /tmp/kinetics
+rsync -a --delete --exclude=.git --exclude=.claude --exclude=.openai \
+  /tmp/kinetics/ fonr/vendor/kinetics/
 ```
 
 ### Où trouver quoi
@@ -36,10 +41,12 @@ droits réservés » de son auteur (ckissi). Le README amont présente les effet
 « copier‑coller », mais **cela ne vaut pas licence de redistribution du dépôt entier**.
 
 Conséquences pour fonr (produit potentiellement commercial) :
-- On l'utilise ici en **sous‑module (référence)** — on ne recopie pas son code dans
-  notre historique sous notre propre licence.
-- Avant d'**embarquer un effet dans le produit livré**, demander une clarification de
-  licence à l'auteur, ou ré‑implémenter l'effet à partir du principe physique (les
-  ressorts/amortissements ne sont pas protégeables, seule l'écriture l'est).
+- Les fichiers sont ici **vendorés** à des fins de **référence de travail** dans ce
+  repo privé, avec attribution explicite à l'auteur (voir `vendor/NOTICE.md`).
+- ⚠️ **Ne pas embarquer un effet tel quel dans le produit livré / public** sans avoir
+  demandé une clarification de licence à l'auteur, **ou** l'avoir ré‑implémenté à
+  partir du principe physique (les ressorts/amortissements ne sont pas protégeables,
+  seule l'écriture du code l'est). Je peux faire cette ré‑implémentation « propre »
+  sur demande.
 
 Attribution : *Kinetics © ckissi — https://github.com/ckissi/kinetics*.

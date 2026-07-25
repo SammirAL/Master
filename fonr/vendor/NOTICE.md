@@ -4,8 +4,8 @@
 - **Source** : https://github.com/ckissi/kinetics
 - **Auteur** : ckissi
 - **Nature** : galerie de 117 micro‑interactions spring‑physics (CSS + React).
-- **Intégration** : sous‑module git (référence, non recopié dans notre historique).
+- **Intégration** : copie vendorée dans le repo (référence de travail), attribuée à l'auteur.
 - **Licence** : ⚠️ aucune licence déclarée dans le dépôt amont → « tous droits
-  réservés » par défaut. Ne pas embarquer d'effet dans un livrable de production
-  sans clarification de licence auprès de l'auteur, ou ré‑implémentation propre.
+  réservés » par défaut. Ne pas embarquer d'effet dans un livrable de production /
+  public sans clarification de licence auprès de l'auteur, ou ré‑implémentation propre.
   Cf. `fonr/README.md` § Licence.
