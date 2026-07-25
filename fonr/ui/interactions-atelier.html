@@ -1,0 +1,427 @@
+<style>
+  /* ─────────────────────────────────────────────────────────────────────
+     FONR — Kit d'interactions (atelier / SAV)
+     Échelle dense : cartes compactes, type resserré. Rien de « zoomé ».
+     Ressorts ré-implémentés à partir du principe physique.
+     ───────────────────────────────────────────────────────────────────── */
+  :root {
+    --paper:#f5f7fc; --surface:#fff; --surface-2:#eef2fa; --surface-3:#e4eaf6;
+    --ink:#0c1a2e; --muted:#566178; --line:#d9e0ee;
+    --accent:#2f55e8; --accent-ink:#fff; --accent-soft:#dbe3ff;
+    --green:#12a150; --green-soft:#d5f0df;
+    --amber:#cf7a00; --amber-soft:#fbe9c9;
+    --red:#d33a2c;
+
+    --font-sans: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono: ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+
+    --spring-soft: cubic-bezier(.34,1.42,.64,1);
+    --spring-firm: cubic-bezier(.22,1,.36,1);
+
+    --radius:11px;
+    --shadow:0 1px 2px rgba(12,26,46,.05),0 6px 18px -10px rgba(12,26,46,.16);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0a1120; --surface:#101a2d; --surface-2:#16223a; --surface-3:#1d2b47;
+      --ink:#e7edf9; --muted:#9aa6bd; --line:#22324e;
+      --accent:#6e8bff; --accent-ink:#08101f; --accent-soft:#1e2c4f;
+      --green:#37c978; --green-soft:#123726; --amber:#e5a13a; --amber-soft:#3a2c12; --red:#f0685a;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#f5f7fc; --surface:#fff; --surface-2:#eef2fa; --surface-3:#e4eaf6;
+    --ink:#0c1a2e; --muted:#566178; --line:#d9e0ee;
+    --accent:#2f55e8; --accent-ink:#fff; --accent-soft:#dbe3ff;
+    --green:#12a150; --green-soft:#d5f0df; --amber:#cf7a00; --amber-soft:#fbe9c9; --red:#d33a2c;
+    --shadow:0 1px 2px rgba(12,26,46,.05),0 6px 18px -10px rgba(12,26,46,.16);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0a1120; --surface:#101a2d; --surface-2:#16223a; --surface-3:#1d2b47;
+    --ink:#e7edf9; --muted:#9aa6bd; --line:#22324e;
+    --accent:#6e8bff; --accent-ink:#08101f; --accent-soft:#1e2c4f;
+    --green:#37c978; --green-soft:#123726; --amber:#e5a13a; --amber-soft:#3a2c12; --red:#f0685a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:clamp(20px,3.5vw,40px) clamp(14px,3vw,26px) 56px}
+
+  .eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--accent);display:inline-flex;align-items:center;gap:7px;margin-bottom:8px}
+  .eyebrow::before{content:"";width:18px;height:1.5px;background:var(--accent)}
+  h1{font-size:clamp(21px,2.6vw,28px);line-height:1.15;letter-spacing:-.015em;margin:0 0 8px;font-weight:730;text-wrap:balance}
+  .lede{color:var(--muted);max-width:66ch;margin:0 0 26px;font-size:13.5px}
+
+  /* Grille dense */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:14px}
+  .comp{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+  .comp-stage{padding:18px 14px;display:flex;align-items:center;justify-content:center;
+    min-height:124px;background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+  .comp-foot{padding:9px 12px 11px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .comp-name{font-weight:660;font-size:12.5px;letter-spacing:-.005em;line-height:1.3}
+  .comp-desc{color:var(--muted);font-size:11px;margin-top:1px;line-height:1.35}
+  .comp-param{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);background:var(--surface-2);
+    border:1px solid var(--line);padding:2px 6px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+  .replay{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;
+    font-family:var(--font-mono);font-size:9.5px;padding:3px 8px;cursor:pointer;flex-shrink:0;
+    transition:border-color .2s,color .2s}
+  .replay:hover{border-color:var(--accent);color:var(--accent)}
+  .replay:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* 1 · Prise en charge — stepper compact ----------------------------- */
+  .intake{width:100%;max-width:196px}
+  .intake-track{display:flex;align-items:center;margin-bottom:12px}
+  .intake-dot{width:20px;height:20px;border-radius:50%;background:var(--surface-3);color:var(--muted);
+    display:grid;place-items:center;font-family:var(--font-mono);font-size:9.5px;font-weight:700;flex-shrink:0;
+    transition:background .38s var(--spring-firm),color .38s ease,transform .44s var(--spring-soft)}
+  .intake-dot[data-on="true"]{background:var(--accent);color:var(--accent-ink);transform:scale(1.1)}
+  .intake-dot[data-done="true"]{background:var(--green);color:#fff;transform:scale(1)}
+  .intake-seg{flex:1;height:1.5px;background:var(--surface-3);position:relative;overflow:hidden}
+  .intake-seg i{position:absolute;inset:0;background:var(--accent);transform:scaleX(0);transform-origin:left;
+    transition:transform .5s var(--spring-firm)}
+  .intake-seg[data-on="true"] i{transform:scaleX(1)}
+  .intake-label{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);margin-bottom:6px;
+    letter-spacing:.02em;min-height:12px}
+  .intake-fields{display:grid;gap:5px}
+  .ifield{background:var(--surface-3);border-radius:5px;height:9px;opacity:0;transform:translateY(5px);
+    transition:opacity .34s ease,transform .4s var(--spring-firm)}
+  .ifield[data-on="true"]{opacity:1;transform:translateY(0)}
+  .ifield.w70{width:70%} .ifield.w45{width:45%} .ifield.w88{width:88%}
+
+  /* 2 · Statut de réparation — timeline verticale --------------------- */
+  .repair{display:flex;flex-direction:column;gap:7px;width:100%;max-width:190px}
+  .rstep{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);opacity:.32;
+    transform:translateX(-4px);
+    transition:opacity .36s var(--spring-firm),transform .44s var(--spring-soft),color .36s ease}
+  .rstep[data-on="true"]{opacity:1;transform:translateX(0);color:var(--ink)}
+  .rstep i{width:17px;height:17px;border-radius:50%;background:var(--surface-3);display:grid;place-items:center;
+    flex-shrink:0;transition:background .36s ease,transform .44s var(--spring-soft)}
+  .rstep[data-on="true"] i{background:var(--green-soft);transform:scale(1.06)}
+  .rstep i svg{width:9px;height:9px;color:var(--green);opacity:0;transform:scale(.4);
+    transition:opacity .26s ease .1s,transform .4s var(--spring-soft) .1s}
+  .rstep[data-on="true"] i svg{opacity:1;transform:scale(1)}
+  .rstep b{font-weight:600}
+  .rstep em{font-family:var(--font-mono);font-size:9.5px;font-style:normal;color:var(--muted);margin-left:auto}
+
+  /* 3 · Notification automatique — toasts ---------------------------- */
+  .notif-stage{position:relative;width:100%;max-width:200px;height:88px}
+  .toast{position:absolute;left:0;right:0;display:flex;align-items:flex-start;gap:8px;
+    background:var(--surface);border:1px solid var(--line);border-left:2.5px solid var(--green);
+    border-radius:8px;padding:8px 10px;box-shadow:var(--shadow);
+    opacity:0;transform:translateY(14px) scale(.97);
+    transition:opacity .34s ease,transform .46s var(--spring-soft)}
+  .toast[data-on="true"]{opacity:1;transform:translateY(0) scale(1)}
+  .toast .ico{width:15px;height:15px;flex-shrink:0;color:var(--green);margin-top:1px}
+  .toast .ico svg{width:100%;height:100%}
+  .toast .txt{font-size:10.5px;line-height:1.35}
+  .toast .txt b{display:block;font-weight:660;font-size:10.5px;color:var(--ink)}
+  .toast .txt i{font-style:normal;color:var(--muted);font-family:var(--font-mono);font-size:9.5px}
+  .t1{top:0} .t2{top:46px;border-left-color:var(--accent)} .t2 .ico{color:var(--accent)}
+
+  /* 4 · Lien de suivi client ---------------------------------------- */
+  .track{display:flex;align-items:stretch;width:100%;max-width:208px;border:1px solid var(--line);
+    border-radius:8px;background:var(--surface);overflow:hidden}
+  .track code{flex:1;font-family:var(--font-mono);font-size:10px;padding:8px 9px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center}
+  .copy{appearance:none;border:0;border-left:1px solid var(--line);background:var(--surface-2);color:var(--ink);
+    font:inherit;font-size:10.5px;font-weight:640;padding:8px 11px;cursor:pointer;position:relative;
+    min-width:66px;overflow:hidden;transition:background .28s var(--spring-firm),color .28s var(--spring-firm)}
+  .copy:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .copy span{display:inline-block;transition:transform .4s var(--spring-soft),opacity .26s ease}
+  .copy .lbl-done{position:absolute;inset:0;display:grid;place-items:center;transform:translateY(120%);opacity:0}
+  .copy[data-copied="true"]{background:var(--green-soft);color:var(--green)}
+  .copy[data-copied="true"] .lbl-idle{transform:translateY(-120%);opacity:0}
+  .copy[data-copied="true"] .lbl-done{transform:translateY(0);opacity:1}
+
+  /* 5 · Compteurs d'atelier ----------------------------------------- */
+  .stats{display:flex;gap:10px;width:100%;max-width:208px}
+  .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+  .stat-v{font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat-l{color:var(--muted);font-size:9.5px;margin-top:2px;line-height:1.3}
+  .stat.a .stat-v{color:var(--accent)} .stat.g .stat-v{color:var(--green)}
+
+  /* 6 · Restitution — maintien ------------------------------------- */
+  .hold{position:relative;appearance:none;border:0;border-radius:8px;background:var(--accent);color:var(--accent-ink);
+    font:inherit;font-size:11.5px;font-weight:660;padding:10px 18px;cursor:pointer;overflow:hidden;isolation:isolate;
+    transition:transform .3s var(--spring-soft),background .28s ease}
+  .hold::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(255,255,255,.28);
+    transform-origin:left;transform:scaleX(0);transition:transform .1s linear}
+  .hold[data-holding="true"]{transform:scale(.975)}
+  .hold[data-holding="true"]::before{transform:scaleX(1);transition:transform 900ms linear}
+  .hold[data-done="true"]{background:var(--green);transform:scale(1.02)}
+  .hold:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .hold-hint{display:block;text-align:center;color:var(--muted);font-size:9.5px;margin-top:8px;
+    font-family:var(--font-mono);letter-spacing:.02em}
+
+  footer.note{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+  footer.note strong{color:var(--ink);font-weight:660}
+  footer.note code{font-family:var(--font-mono);background:var(--surface-2);padding:1px 5px;border-radius:5px;
+    font-size:.9em;color:var(--ink)}
+  footer.note p{margin:0 0 8px}
+
+  @media (prefers-reduced-motion: reduce){*{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+</style>
+
+<div class="wrap">
+  <span class="eyebrow">FONR · Kit d'interactions · atelier</span>
+  <h1>Six composants d'atelier, à l'échelle réelle de l'interface</h1>
+  <p class="lede">Prise en charge, suivi de réparation, notifications automatiques, lien de suivi client, indicateurs d'atelier, restitution. Échelle dense : typographie et cartes calibrées pour un outil professionnel, pas pour une vitrine.</p>
+
+  <div class="grid">
+
+    <!-- 1 · Prise en charge -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="intake">
+          <div class="intake-track">
+            <span class="intake-dot" id="d1" data-on="false" data-done="false">1</span>
+            <span class="intake-seg" id="s1" data-on="false"><i></i></span>
+            <span class="intake-dot" id="d2" data-on="false" data-done="false">2</span>
+            <span class="intake-seg" id="s2" data-on="false"><i></i></span>
+            <span class="intake-dot" id="d3" data-on="false" data-done="false">3</span>
+          </div>
+          <div class="intake-label" id="ilabel">Client</div>
+          <div class="intake-fields">
+            <span class="ifield w88" data-on="false"></span>
+            <span class="ifield w70" data-on="false"></span>
+            <span class="ifield w45" data-on="false"></span>
+          </div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Prise en charge</div>
+          <div class="comp-desc">Client → appareil → panne constatée</div>
+        </div>
+        <button class="replay" id="ireplay">Rejouer</button>
+      </div>
+    </div>
+
+    <!-- 2 · Statut de réparation -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="repair" id="repair">
+          <div class="rstep" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Reçu à l'atelier</b><em>09:12</em></div>
+          <div class="rstep" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Diagnostic établi</b><em>10:40</em></div>
+          <div class="rstep" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>En réparation</b><em>11:05</em></div>
+          <div class="rstep" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Prêt à récupérer</b><em>15:28</em></div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Suivi de réparation</div>
+          <div class="comp-desc">Cascade horodatée, lisible d'un regard</div>
+        </div>
+        <button class="replay" id="rreplay">Rejouer</button>
+      </div>
+    </div>
+
+    <!-- 3 · Notification automatique -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="notif-stage">
+          <div class="toast t1" id="toast1" data-on="false">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+            <span class="txt"><b>SMS envoyé</b><i>06 12 34 56 78</i></span>
+          </div>
+          <div class="toast t2" id="toast2" data-on="false">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2 7 12 13 22 7"/></svg></span>
+            <span class="txt"><b>E-mail envoyé</b><i>client@exemple.fr</i></span>
+          </div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Notification automatique</div>
+          <div class="comp-desc">Déclenchée à chaque changement de statut</div>
+        </div>
+        <button class="replay" id="nreplay">Rejouer</button>
+      </div>
+    </div>
+
+    <!-- 4 · Lien de suivi -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="track">
+          <code>fonr.pro/suivi/A7K2-9X</code>
+          <button class="copy" id="copybtn" data-copied="false" aria-label="Copier le lien de suivi">
+            <span class="lbl-idle">Copier</span>
+            <span class="lbl-done">Copié</span>
+          </button>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Lien de suivi client</div>
+          <div class="comp-desc">Le client suit sa réparation sans créer de compte</div>
+        </div>
+        <span class="comp-param">slide · 400ms</span>
+      </div>
+    </div>
+
+    <!-- 5 · Compteurs -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="stats">
+          <div class="stat a"><div class="stat-v" id="stat1">0</div><div class="stat-l">en cours</div></div>
+          <div class="stat g"><div class="stat-v" id="stat2">0</div><div class="stat-l">prêtes ce jour</div></div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Indicateurs d'atelier</div>
+          <div class="comp-desc">Décélération amortie, chiffres alignés</div>
+        </div>
+        <button class="replay" id="sreplay">Rejouer</button>
+      </div>
+    </div>
+
+    <!-- 6 · Restitution -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div>
+          <button class="hold" id="holdbtn" data-holding="false" data-done="false">
+            <span id="holdlabel">Maintenir pour restituer</span>
+          </button>
+          <span class="hold-hint" id="holdhint">clôture la fiche · irréversible</span>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Restitution</div>
+          <div class="comp-desc">Geste volontaire, pas de clic accidentel</div>
+        </div>
+        <span class="comp-param">hold · 900ms</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="note">
+    <p><strong>Échelle corrigée.</strong> Cartes à 236 px minimum (au lieu de 300), corps à 14 px, libellés à 12,5 px, légendes à 11 px, hauteur de scène à 124 px : la grille affiche plus de composants à surface égale, sans effet de loupe. Couleurs pilotées par <code>--accent</code>, <code>--green</code>, <code>--amber</code> ; ressorts par <code>--spring-soft</code> / <code>--spring-firm</code>.</p>
+    <p><strong>Hypothèses à confirmer.</strong> Les intitulés (« Reçu à l'atelier », « Diagnostic établi », « Prêt à récupérer », les trois étapes de prise en charge) sont ceux d'un atelier de réparation type. Donnez-moi vos statuts et votre vocabulaire réels : je les remplace au mot près.</p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var T = function (fn, ms) { return setTimeout(fn, reduce ? 0 : ms); };
+
+    /* 1 · Prise en charge : 3 étapes, champs qui se remplissent */
+    var dots = [document.getElementById('d1'), document.getElementById('d2'), document.getElementById('d3')];
+    var segs = [document.getElementById('s1'), document.getElementById('s2')];
+    var ilabel = document.getElementById('ilabel');
+    var fields = Array.prototype.slice.call(document.querySelectorAll('.ifield'));
+    var LABELS = ['Client', 'Appareil', 'Panne constatée'];
+    var itimers = [];
+    function runIntake() {
+      itimers.forEach(clearTimeout); itimers = [];
+      dots.forEach(function (d) { d.setAttribute('data-on', 'false'); d.setAttribute('data-done', 'false'); });
+      segs.forEach(function (s) { s.setAttribute('data-on', 'false'); });
+      fields.forEach(function (f) { f.setAttribute('data-on', 'false'); });
+      ilabel.textContent = LABELS[0];
+
+      [0, 1, 2].forEach(function (i) {
+        itimers.push(T(function () {
+          if (i > 0) {
+            dots[i - 1].setAttribute('data-done', 'true');
+            segs[i - 1].setAttribute('data-on', 'true');
+          }
+          dots[i].setAttribute('data-on', 'true');
+          ilabel.textContent = LABELS[i];
+          fields.forEach(function (f, k) {
+            itimers.push(T(function () { f.setAttribute('data-on', k <= i ? 'true' : 'false'); }, k * 90));
+          });
+        }, 300 + i * 1100));
+      });
+    }
+    document.getElementById('ireplay').addEventListener('click', runIntake);
+
+    /* 2 · Suivi de réparation : cascade */
+    var rsteps = Array.prototype.slice.call(document.querySelectorAll('#repair .rstep'));
+    var rtimers = [];
+    function runRepair() {
+      rtimers.forEach(clearTimeout); rtimers = [];
+      rsteps.forEach(function (s) { s.setAttribute('data-on', 'false'); });
+      rsteps.forEach(function (s, i) {
+        rtimers.push(T(function () { s.setAttribute('data-on', 'true'); }, 200 + i * 300));
+      });
+    }
+    document.getElementById('rreplay').addEventListener('click', runRepair);
+
+    /* 3 · Notifications : SMS puis e-mail */
+    var toast1 = document.getElementById('toast1'), toast2 = document.getElementById('toast2');
+    var ntimers = [];
+    function runNotif() {
+      ntimers.forEach(clearTimeout); ntimers = [];
+      toast1.setAttribute('data-on', 'false');
+      toast2.setAttribute('data-on', 'false');
+      ntimers.push(T(function () { toast1.setAttribute('data-on', 'true'); }, 260));
+      ntimers.push(T(function () { toast2.setAttribute('data-on', 'true'); }, 780));
+    }
+    document.getElementById('nreplay').addEventListener('click', runNotif);
+
+    /* 4 · Copier le lien de suivi */
+    var copybtn = document.getElementById('copybtn'), copyTimer;
+    copybtn.addEventListener('click', function () {
+      var link = copybtn.parentNode.querySelector('code').textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(link).catch(function () {});
+      copybtn.setAttribute('data-copied', 'true');
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(function () { copybtn.setAttribute('data-copied', 'false'); }, 1600);
+    });
+
+    /* 5 · Compteurs : décélération cubique */
+    var stat1 = document.getElementById('stat1'), stat2 = document.getElementById('stat2');
+    function count(el, target, dur) {
+      if (reduce) { el.textContent = target; return; }
+      var start = performance.now();
+      (function frame(now) {
+        var t = Math.min((now - start) / dur, 1);
+        el.textContent = Math.round((1 - Math.pow(1 - t, 3)) * target);
+        if (t < 1) requestAnimationFrame(frame);
+      })(start);
+    }
+    function runStats() { count(stat1, 12, 1100); count(stat2, 5, 1100); }
+    document.getElementById('sreplay').addEventListener('click', function () {
+      stat1.textContent = '0'; stat2.textContent = '0';
+      requestAnimationFrame(runStats);
+    });
+
+    /* 6 · Restitution : maintien 900 ms */
+    var hold = document.getElementById('holdbtn');
+    var holdLabel = document.getElementById('holdlabel'), holdHint = document.getElementById('holdhint');
+    var holdTimer, HOLD_MS = 900;
+    function startHold() {
+      if (hold.getAttribute('data-done') === 'true') return;
+      hold.setAttribute('data-holding', 'true');
+      holdTimer = setTimeout(function () {
+        hold.setAttribute('data-holding', 'false');
+        hold.setAttribute('data-done', 'true');
+        holdLabel.textContent = 'Fiche clôturée';
+        holdHint.textContent = 'facture générée';
+        setTimeout(function () {
+          hold.setAttribute('data-done', 'false');
+          holdLabel.textContent = 'Maintenir pour restituer';
+          holdHint.textContent = 'clôture la fiche · irréversible';
+        }, 2200);
+      }, HOLD_MS);
+    }
+    function cancelHold() { clearTimeout(holdTimer); hold.setAttribute('data-holding', 'false'); }
+    hold.addEventListener('pointerdown', startHold);
+    hold.addEventListener('pointerup', cancelHold);
+    hold.addEventListener('pointerleave', cancelHold);
+    hold.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); startHold(); } });
+    hold.addEventListener('keyup', cancelHold);
+
+    /* Démarrage */
+    runIntake(); runRepair(); runNotif(); runStats();
+  })();
+</script>
