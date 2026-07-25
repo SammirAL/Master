@@ -1,0 +1,398 @@
+<style>
+  /* ─────────────────────────────────────────────────────────────────────
+     fonr — Kit d'interactions
+     Palette « govtech de précision », cohérente avec les schémas animés.
+     Ressorts ré-implémentés à partir du principe physique (amortissement
+     critique / léger dépassement), pas de code tiers.
+     ───────────────────────────────────────────────────────────────────── */
+  :root {
+    --paper:#f5f7fc; --surface:#fff; --surface-2:#eef2fa; --surface-3:#e4eaf6;
+    --ink:#0c1a2e; --muted:#566178; --line:#d9e0ee;
+    --accent:#2f55e8; --accent-ink:#fff; --accent-soft:#dbe3ff;
+    --green:#12a150; --green-soft:#d5f0df;
+    --amber:#cf7a00; --amber-soft:#fbe9c9;
+    --red:#d33a2c;
+
+    --font-sans: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono: ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+
+    /* Courbes de ressort : dépassement léger, amorti, net */
+    --spring-soft: cubic-bezier(.34,1.42,.64,1);
+    --spring-firm: cubic-bezier(.22,1,.36,1);
+    --spring-snap: cubic-bezier(.16,1,.3,1);
+
+    --radius:14px;
+    --shadow:0 1px 2px rgba(12,26,46,.06),0 10px 28px -12px rgba(12,26,46,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root{
+      --paper:#0a1120; --surface:#101a2d; --surface-2:#16223a; --surface-3:#1d2b47;
+      --ink:#e7edf9; --muted:#9aa6bd; --line:#22324e;
+      --accent:#6e8bff; --accent-ink:#08101f; --accent-soft:#1e2c4f;
+      --green:#37c978; --green-soft:#123726;
+      --amber:#e5a13a; --amber-soft:#3a2c12; --red:#f0685a;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 36px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#f5f7fc; --surface:#fff; --surface-2:#eef2fa; --surface-3:#e4eaf6;
+    --ink:#0c1a2e; --muted:#566178; --line:#d9e0ee;
+    --accent:#2f55e8; --accent-ink:#fff; --accent-soft:#dbe3ff;
+    --green:#12a150; --green-soft:#d5f0df; --amber:#cf7a00; --amber-soft:#fbe9c9; --red:#d33a2c;
+    --shadow:0 1px 2px rgba(12,26,46,.06),0 10px 28px -12px rgba(12,26,46,.18);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0a1120; --surface:#101a2d; --surface-2:#16223a; --surface-3:#1d2b47;
+    --ink:#e7edf9; --muted:#9aa6bd; --line:#22324e;
+    --accent:#6e8bff; --accent-ink:#08101f; --accent-soft:#1e2c4f;
+    --green:#37c978; --green-soft:#123726; --amber:#e5a13a; --amber-soft:#3a2c12; --red:#f0685a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 16px 36px -16px rgba(0,0,0,.6);
+  }
+
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1020px;margin:0 auto;padding:clamp(24px,5vw,56px) clamp(16px,4vw,32px) 80px}
+
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:inline-flex;align-items:center;gap:8px;margin-bottom:10px}
+  .eyebrow::before{content:"";width:22px;height:2px;background:var(--accent)}
+  h1{font-size:clamp(28px,4.4vw,42px);line-height:1.06;letter-spacing:-.02em;margin:0 0 12px;font-weight:780;text-wrap:balance}
+  .lede{color:var(--muted);max-width:62ch;margin:0 0 40px;font-size:clamp(15px,1.6vw,17px)}
+
+  /* Grille de composants */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .comp{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+  .comp-stage{padding:34px 24px;display:flex;align-items:center;justify-content:center;min-height:170px;background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+  .comp-foot{padding:14px 18px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .comp-name{font-weight:700;font-size:14.5px;letter-spacing:-.01em}
+  .comp-desc{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .comp-param{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:3px 8px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+
+  /* 1 · Toggle tarifs ------------------------------------------------- */
+  .toggle{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px;position:relative;isolation:isolate}
+  .toggle-thumb{position:absolute;top:4px;left:4px;height:calc(100% - 8px);border-radius:999px;background:var(--accent);z-index:-1;
+    transition:transform .48s var(--spring-soft), width .48s var(--spring-soft)}
+  .toggle button{appearance:none;background:none;border:0;font:inherit;font-size:13.5px;font-weight:640;color:var(--muted);padding:9px 18px;border-radius:999px;cursor:pointer;transition:color .3s var(--spring-firm)}
+  .toggle button[aria-selected="true"]{color:var(--accent-ink)}
+  .toggle button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+  /* 2 · Compteur ------------------------------------------------------ */
+  .counter{text-align:center}
+  .counter-value{font-family:var(--font-mono);font-size:clamp(38px,7vw,52px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+  .counter-value .unit{font-size:.45em;color:var(--muted);margin-left:4px}
+  .counter-label{color:var(--muted);font-size:12.5px;margin-top:10px}
+  .counter-bar{height:5px;background:var(--surface-3);border-radius:3px;margin-top:14px;overflow:hidden}
+  .counter-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1.5s var(--spring-firm)}
+
+  /* 3 · Copier la clé API --------------------------------------------- */
+  .apikey{display:flex;align-items:center;gap:0;width:100%;max-width:290px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+  .apikey code{flex:1;font-family:var(--font-mono);font-size:12px;padding:11px 12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .copy{appearance:none;border:0;border-left:1px solid var(--line);background:var(--surface-2);color:var(--ink);font:inherit;font-size:12.5px;font-weight:640;padding:11px 15px;cursor:pointer;position:relative;min-width:88px;
+    transition:background .3s var(--spring-firm),color .3s var(--spring-firm)}
+  .copy:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .copy span{display:inline-block;transition:transform .42s var(--spring-soft),opacity .28s ease}
+  .copy .lbl-done{position:absolute;inset:0;display:grid;place-items:center;transform:translateY(120%);opacity:0}
+  .copy[data-copied="true"]{background:var(--green-soft);color:var(--green)}
+  .copy[data-copied="true"] .lbl-idle{transform:translateY(-120%);opacity:0}
+  .copy[data-copied="true"] .lbl-done{transform:translateY(0);opacity:1}
+
+  /* 4 · Maintenir pour émettre ---------------------------------------- */
+  .hold{position:relative;appearance:none;border:0;border-radius:11px;background:var(--accent);color:var(--accent-ink);
+    font:inherit;font-size:14px;font-weight:680;padding:14px 26px;cursor:pointer;overflow:hidden;isolation:isolate;
+    transition:transform .34s var(--spring-soft),background .3s ease}
+  .hold::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(255,255,255,.28);
+    transform-origin:left;transform:scaleX(0);transition:transform .1s linear}
+  .hold[data-holding="true"]{transform:scale(.975)}
+  .hold[data-holding="true"]::before{transform:scaleX(1);transition:transform var(--hold-ms,900ms) linear}
+  .hold[data-done="true"]{background:var(--green);transform:scale(1.03)}
+  .hold:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .hold-hint{display:block;text-align:center;color:var(--muted);font-size:11.5px;margin-top:11px;font-family:var(--font-mono);letter-spacing:.03em}
+
+  /* 5 · Ligne de facture dépliante ------------------------------------ */
+  .invoice{width:100%;max-width:300px;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+  .invoice-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px;cursor:pointer;user-select:none}
+  .invoice-head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .invoice-ref{font-family:var(--font-mono);font-size:12px;color:var(--ink);font-weight:600}
+  .invoice-amount{font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;font-weight:700}
+  .chev{width:16px;height:16px;flex-shrink:0;color:var(--muted);transition:transform .42s var(--spring-soft)}
+  .invoice[data-open="true"] .chev{transform:rotate(180deg)}
+  .invoice-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .46s var(--spring-firm)}
+  .invoice[data-open="true"] .invoice-body{grid-template-rows:1fr}
+  .invoice-body > div{overflow:hidden}
+  .invoice-rows{padding:0 15px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:grid;gap:7px}
+  .invoice-rows div{display:flex;justify-content:space-between;gap:12px;padding-top:9px}
+  .invoice-rows span:last-child{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+
+  /* 6 · Cycle de vie du statut ---------------------------------------- */
+  .steps{display:flex;flex-direction:column;gap:11px;width:100%;max-width:250px}
+  .step{display:flex;align-items:center;gap:11px;font-size:13px;color:var(--muted);
+    opacity:.35;transform:translateX(-6px);
+    transition:opacity .4s var(--spring-firm),transform .5s var(--spring-soft),color .4s ease}
+  .step[data-on="true"]{opacity:1;transform:translateX(0);color:var(--ink)}
+  .step i{width:22px;height:22px;border-radius:50%;background:var(--surface-3);display:grid;place-items:center;flex-shrink:0;
+    transition:background .4s ease,transform .5s var(--spring-soft)}
+  .step[data-on="true"] i{background:var(--green-soft);transform:scale(1.08)}
+  .step i svg{width:12px;height:12px;color:var(--green);opacity:0;transform:scale(.4);transition:opacity .3s ease .12s,transform .44s var(--spring-soft) .12s}
+  .step[data-on="true"] i svg{opacity:1;transform:scale(1)}
+  .step b{font-weight:600;font-size:13px}
+
+  .replay{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;
+    font-family:var(--font-mono);font-size:11px;padding:6px 12px;cursor:pointer;transition:border-color .2s,color .2s}
+  .replay:hover{border-color:var(--accent);color:var(--accent)}
+  .replay:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  footer.note{margin-top:40px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+  footer.note strong{color:var(--ink);font-weight:680}
+  footer.note code{font-family:var(--font-mono);background:var(--surface-2);padding:1px 6px;border-radius:6px;font-size:.92em;color:var(--ink)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition-duration:.01ms !important;animation-duration:.01ms !important}
+  }
+</style>
+
+<div class="wrap">
+  <span class="eyebrow">fonr · Kit d'interactions</span>
+  <h1>Six micro-interactions, taillées pour la facturation</h1>
+  <p class="lede">Chaque composant sert un moment précis du produit : choisir une formule, mesurer sa conformité, récupérer une clé d'API, confirmer un envoi irréversible, détailler une facture, suivre un statut. Ressorts ré-implémentés à partir du principe physique — code réutilisable tel quel.</p>
+
+  <div class="grid">
+
+    <!-- 1 · Toggle tarifs -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="toggle" id="pricing" role="tablist" aria-label="Formule de tarification">
+          <span class="toggle-thumb" id="thumb"></span>
+          <button role="tab" aria-selected="true">À l'usage</button>
+          <button role="tab" aria-selected="false">Forfait</button>
+          <button role="tab" aria-selected="false">Sur mesure</button>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Sélecteur de formule</div>
+          <div class="comp-desc">Le repère glisse et se cale sous l'onglet actif</div>
+        </div>
+        <span class="comp-param">spring · 480ms</span>
+      </div>
+    </div>
+
+    <!-- 2 · Compteur -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="counter">
+          <div class="counter-value"><span id="cval">0</span><span class="unit">%</span></div>
+          <div class="counter-bar"><i id="cbar"></i></div>
+          <div class="counter-label">Conformité à la réforme</div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Compteur de conformité</div>
+          <div class="comp-desc">Décélération amortie, chiffres alignés</div>
+        </div>
+        <button class="replay" id="creplay">Relancer</button>
+      </div>
+    </div>
+
+    <!-- 3 · Clé API -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="apikey">
+          <code>fonr_live_7f3a91c4e8b2</code>
+          <button class="copy" id="copybtn" data-copied="false" aria-label="Copier la clé d'API">
+            <span class="lbl-idle">Copier</span>
+            <span class="lbl-done">Copié</span>
+          </button>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Clé d'API</div>
+          <div class="comp-desc">Les libellés se croisent verticalement</div>
+        </div>
+        <span class="comp-param">slide · 420ms</span>
+      </div>
+    </div>
+
+    <!-- 4 · Hold to confirm -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div>
+          <button class="hold" id="holdbtn" data-holding="false" data-done="false" style="--hold-ms:900ms">
+            <span id="holdlabel">Maintenir pour émettre</span>
+          </button>
+          <span class="hold-hint" id="holdhint">Geste volontaire · action irréversible</span>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Confirmation maintenue</div>
+          <div class="comp-desc">Pour l'envoi d'une facture : pas de clic accidentel</div>
+        </div>
+        <span class="comp-param">hold · 900ms</span>
+      </div>
+    </div>
+
+    <!-- 5 · Facture dépliante -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="invoice" id="invoice" data-open="false">
+          <div class="invoice-head" id="invhead" tabindex="0" role="button" aria-expanded="false">
+            <span class="invoice-ref">FA-2026-0148</span>
+            <span class="invoice-amount">1 248,00 €</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="invoice-body"><div>
+            <div class="invoice-rows">
+              <div><span>Base HT</span><span>1 040,00 €</span></div>
+              <div><span>TVA 20 %</span><span>208,00 €</span></div>
+              <div><span>Format</span><span>Factur-X</span></div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Ligne de facture</div>
+          <div class="comp-desc">Hauteur en <code style="font-size:11px">grid-template-rows</code>, sans saccade</div>
+        </div>
+        <span class="comp-param">spring · 460ms</span>
+      </div>
+    </div>
+
+    <!-- 6 · Cycle de vie -->
+    <div class="comp">
+      <div class="comp-stage">
+        <div class="steps" id="steps">
+          <div class="step" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Déposée</b></div>
+          <div class="step" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Reçue par le client</b></div>
+          <div class="step" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Approuvée</b></div>
+          <div class="step" data-on="false"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></i><b>Encaissée</b></div>
+        </div>
+      </div>
+      <div class="comp-foot">
+        <div>
+          <div class="comp-name">Cycle de vie</div>
+          <div class="comp-desc">Cascade décalée : l'ordre se lit tout seul</div>
+        </div>
+        <button class="replay" id="sreplay">Relancer</button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="note">
+    <p><strong>Réutilisation.</strong> Tout est piloté par les variables CSS <code>--accent</code>, <code>--green</code>, <code>--amber</code> et les trois courbes <code>--spring-soft</code> / <code>--spring-firm</code> / <code>--spring-snap</code> : change ces valeurs et le kit entier suit votre charte. Thème clair/sombre automatique, focus clavier visible, <code>prefers-reduced-motion</code> respecté.</p>
+    <p><strong>Origine.</strong> Effets choisis d'après le catalogue <a href="https://github.com/ckissi/kinetics" style="color:var(--accent)">kinetics</a> (ckissi), puis <strong>ré-implémentés</strong> à partir du principe physique — dépassement amorti par courbes de Bézier. Aucun code tiers copié : ce kit est donc libre d'usage dans fonr.</p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* 1 · Toggle : le repère suit l'onglet actif */
+    var toggle = document.getElementById('pricing');
+    var thumb = document.getElementById('thumb');
+    var tabs = Array.prototype.slice.call(toggle.querySelectorAll('button'));
+    function placeThumb(el) {
+      thumb.style.width = el.offsetWidth + 'px';
+      thumb.style.transform = 'translateX(' + (el.offsetLeft - 4) + 'px)';
+    }
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (t) { t.setAttribute('aria-selected', String(t === tab)); });
+        placeThumb(tab);
+      });
+    });
+    requestAnimationFrame(function () { placeThumb(tabs[0]); });
+    addEventListener('resize', function () {
+      var active = toggle.querySelector('[aria-selected="true"]') || tabs[0];
+      placeThumb(active);
+    });
+
+    /* 2 · Compteur : décélération amortie vers la valeur cible */
+    var cval = document.getElementById('cval'), cbar = document.getElementById('cbar');
+    function runCounter(target) {
+      if (reduce) { cval.textContent = target; cbar.style.width = target + '%'; return; }
+      var start = performance.now(), dur = 1500;
+      cbar.style.width = target + '%';
+      (function frame(now) {
+        var t = Math.min((now - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - t, 3);          // décélération cubique
+        cval.textContent = Math.round(eased * target);
+        if (t < 1) requestAnimationFrame(frame);
+      })(start);
+    }
+    document.getElementById('creplay').addEventListener('click', function () {
+      cval.textContent = '0'; cbar.style.width = '0';
+      requestAnimationFrame(function () { runCounter(94); });
+    });
+
+    /* 3 · Copier : bascule d'état, retour au repos après 1,6 s */
+    var copybtn = document.getElementById('copybtn'), copyTimer;
+    copybtn.addEventListener('click', function () {
+      var key = copybtn.parentNode.querySelector('code').textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(key).catch(function(){});
+      copybtn.setAttribute('data-copied', 'true');
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(function () { copybtn.setAttribute('data-copied', 'false'); }, 1600);
+    });
+
+    /* 4 · Maintenir pour émettre : validé seulement au bout du geste */
+    var hold = document.getElementById('holdbtn');
+    var holdLabel = document.getElementById('holdlabel');
+    var holdHint = document.getElementById('holdhint');
+    var holdTimer, HOLD_MS = 900;
+    function startHold() {
+      if (hold.getAttribute('data-done') === 'true') return;
+      hold.setAttribute('data-holding', 'true');
+      holdTimer = setTimeout(function () {
+        hold.setAttribute('data-holding', 'false');
+        hold.setAttribute('data-done', 'true');
+        holdLabel.textContent = 'Facture émise';
+        holdHint.textContent = 'transmise à la plateforme';
+        setTimeout(function () {
+          hold.setAttribute('data-done', 'false');
+          holdLabel.textContent = 'Maintenir pour émettre';
+          holdHint.textContent = 'Geste volontaire · action irréversible';
+        }, 2200);
+      }, HOLD_MS);
+    }
+    function cancelHold() {
+      clearTimeout(holdTimer);
+      hold.setAttribute('data-holding', 'false');
+    }
+    hold.addEventListener('pointerdown', startHold);
+    hold.addEventListener('pointerup', cancelHold);
+    hold.addEventListener('pointerleave', cancelHold);
+    hold.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); startHold(); } });
+    hold.addEventListener('keyup', cancelHold);
+
+    /* 5 · Facture : dépliage par grid-template-rows (0fr → 1fr) */
+    var invoice = document.getElementById('invoice'), invhead = document.getElementById('invhead');
+    function toggleInvoice() {
+      var open = invoice.getAttribute('data-open') === 'true';
+      invoice.setAttribute('data-open', String(!open));
+      invhead.setAttribute('aria-expanded', String(!open));
+    }
+    invhead.addEventListener('click', toggleInvoice);
+    invhead.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleInvoice(); }
+    });
+
+    /* 6 · Cycle de vie : cascade décalée */
+    var steps = Array.prototype.slice.call(document.querySelectorAll('#steps .step'));
+    var stepTimers = [];
+    function runSteps() {
+      stepTimers.forEach(clearTimeout); stepTimers = [];
+      steps.forEach(function (s) { s.setAttribute('data-on', 'false'); });
+      steps.forEach(function (s, i) {
+        stepTimers.push(setTimeout(function () { s.setAttribute('data-on', 'true'); }, reduce ? 0 : 220 + i * 320));
+      });
+    }
+    document.getElementById('sreplay').addEventListener('click', runSteps);
+
+    /* Démarrage : compteur + cascade au premier affichage */
+    runCounter(94);
+    runSteps();
+  })();
+</script>

@@ -1,0 +1,495 @@
+<style>
+  :root {
+    /* Palette « govtech de précision » */
+    --paper: #f5f7fc;
+    --surface: #ffffff;
+    --surface-2: #eef2fa;
+    --ink: #0c1a2e;
+    --muted: #566178;
+    --line: #d9e0ee;
+    --accent: #2f55e8;      /* bleu administratif */
+    --accent-soft: #dbe3ff;
+    --green: #12a150;       /* conformité / validé */
+    --green-soft: #d5f0df;
+    --amber: #cf7a00;       /* e-reporting / attention */
+    --amber-soft: #fbe9c9;
+    --red: #d33a2c;         /* rejetée */
+    --pdf: #f6efe1;         /* papier / PDF */
+    --pdf-ink: #8a6d3b;
+
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+
+    --maxw: 1080px;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(12,26,46,.06), 0 12px 32px -12px rgba(12,26,46,.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0a1120;
+      --surface: #101a2d;
+      --surface-2: #16223a;
+      --ink: #e7edf9;
+      --muted: #9aa6bd;
+      --line: #22324e;
+      --accent: #6e8bff;
+      --accent-soft: #1e2c4f;
+      --green: #37c978;
+      --green-soft: #123726;
+      --amber: #e5a13a;
+      --amber-soft: #3a2c12;
+      --red: #f0685a;
+      --pdf: #2a2415;
+      --pdf-ink: #cdb583;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f7fc; --surface: #ffffff; --surface-2: #eef2fa; --ink: #0c1a2e;
+    --muted: #566178; --line: #d9e0ee; --accent: #2f55e8; --accent-soft: #dbe3ff;
+    --green: #12a150; --green-soft: #d5f0df; --amber: #cf7a00; --amber-soft: #fbe9c9;
+    --red: #d33a2c; --pdf: #f6efe1; --pdf-ink: #8a6d3b;
+    --shadow: 0 1px 2px rgba(12,26,46,.06), 0 12px 32px -12px rgba(12,26,46,.18);
+  }
+  :root[data-theme="dark"] {
+    --paper: #0a1120; --surface: #101a2d; --surface-2: #16223a; --ink: #e7edf9;
+    --muted: #9aa6bd; --line: #22324e; --accent: #6e8bff; --accent-soft: #1e2c4f;
+    --green: #37c978; --green-soft: #123726; --amber: #e5a13a; --amber-soft: #3a2c12;
+    --red: #f0685a; --pdf: #2a2415; --pdf-ink: #cdb583;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -16px rgba(0,0,0,.6);
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: clamp(24px, 5vw, 56px) clamp(16px, 4vw, 32px) 72px; }
+
+  /* Header */
+  header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 40px; }
+  .brand-eyebrow {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  }
+  .brand-eyebrow::before { content: ""; width: 22px; height: 2px; background: var(--accent); display: inline-block; }
+  h1 { font-size: clamp(28px, 4.4vw, 44px); line-height: 1.05; letter-spacing: -.02em; margin: 0 0 10px; text-wrap: balance; font-weight: 780; }
+  .sub { color: var(--muted); max-width: 60ch; margin: 0; font-size: clamp(15px, 1.6vw, 17px); }
+
+  .controls { display: inline-flex; gap: 8px; }
+  button.ctrl {
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 15px; cursor: pointer; box-shadow: var(--shadow);
+    transition: border-color .15s, transform .05s;
+  }
+  button.ctrl:hover { border-color: var(--accent); }
+  button.ctrl:active { transform: translateY(1px); }
+  button.ctrl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Module card */
+  .module { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(20px, 3vw, 30px); margin-bottom: 26px; }
+  .m-eyebrow { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .m-title { font-size: clamp(19px, 2.4vw, 24px); font-weight: 720; letter-spacing: -.01em; margin: 6px 0 4px; text-wrap: balance; }
+  .m-cap { color: var(--muted); font-size: 14.5px; margin: 0 0 18px; max-width: 68ch; }
+  .stage { width: 100%; overflow-x: auto; overflow-y: hidden; }
+  .stage svg { display: block; width: 100%; height: auto; }
+  .stage.scroll svg { min-width: 640px; }
+
+  /* Shared SVG typography */
+  .lbl { font-family: var(--font-sans); font-weight: 640; fill: var(--ink); }
+  .lbl-sm { font-family: var(--font-sans); font-weight: 600; fill: var(--muted); }
+  .code { font-family: var(--font-mono); font-weight: 600; letter-spacing: .02em; }
+  .nodebox { fill: var(--surface-2); stroke: var(--line); }
+
+  /* ---- Animations (état statique = état lisible ; l'animation ajoute le mouvement) ---- */
+  .flow-dash { stroke-dasharray: 6 8; animation: dashmove 1.1s linear infinite; }
+  @keyframes dashmove { to { stroke-dashoffset: -28; } }
+
+  .packet { offset-path: path("M 120 120 H 840"); offset-rotate: 0deg; animation: travel 5.5s ease-in-out infinite; }
+  @keyframes travel {
+    0%   { offset-distance: 0%;   opacity: 0; }
+    6%   { opacity: 1; }
+    94%  { opacity: 1; }
+    100% { offset-distance: 100%; opacity: 0; }
+  }
+  .node-pulse { transform-box: fill-box; transform-origin: center; }
+  .np1 { animation: pulse 5.5s ease-in-out infinite; animation-delay: .1s; }
+  .np2 { animation: pulse 5.5s ease-in-out infinite; animation-delay: 1.3s; }
+  .np3 { animation: pulse 5.5s ease-in-out infinite; animation-delay: 2.6s; }
+  .np4 { animation: pulse 5.5s ease-in-out infinite; animation-delay: 3.7s; }
+  .np5 { animation: pulse 5.5s ease-in-out infinite; animation-delay: 4.7s; }
+  @keyframes pulse { 0%,100%{ opacity: 0 } 8%,18%{ opacity: 1 } 30%{ opacity: 0 } }
+
+  .pill-status { opacity: 1; }
+  .ps1 { animation: pillcycle 5.5s ease-in-out infinite; animation-delay:.2s }
+  .ps2 { animation: pillcycle 5.5s ease-in-out infinite; animation-delay:1.5s }
+  .ps3 { animation: pillcycle 5.5s ease-in-out infinite; animation-delay:2.9s }
+  .ps4 { animation: pillcycle 5.5s ease-in-out infinite; animation-delay:4.1s }
+  @keyframes pillcycle { 0%,10%{ opacity:.25; transform:translateY(2px) } 20%,80%{ opacity:1; transform:translateY(0) } 100%{ opacity:.25 } }
+
+  /* Factur-X merge */
+  .fx-pdf  { animation: fxpdf 6s ease-in-out infinite; }
+  .fx-xml  { animation: fxxml 6s ease-in-out infinite; }
+  .fx-merged { opacity: 1; animation: fxmerged 6s ease-in-out infinite; }
+  .fx-badge { opacity: 1; animation: fxbadge 6s ease-in-out infinite; }
+  @keyframes fxpdf   { 0%{ transform: translateX(-70px); opacity:0 } 22%,44%{ transform: translateX(0); opacity:1 } 58%,100%{ transform: translateX(46px); opacity:0 } }
+  @keyframes fxxml   { 0%{ transform: translateX(70px); opacity:0 } 22%,44%{ transform: translateX(0); opacity:1 } 58%,100%{ transform: translateX(-46px); opacity:0 } }
+  @keyframes fxmerged{ 0%,52%{ opacity:0; transform: scale(.94) } 66%,94%{ opacity:1; transform: scale(1) } 100%{ opacity:0 } }
+  @keyframes fxbadge { 0%,64%{ opacity:0; transform: scale(.6) } 74%,94%{ opacity:1; transform: scale(1) } 100%{ opacity:0 } }
+
+  /* Timeline */
+  .tl-fill { animation: tlfill 5s ease-in-out infinite; }
+  @keyframes tlfill { 0%{ width: 0 } 70%,100%{ width: 100% } }
+  .tl-dot { transform-box: fill-box; transform-origin: center; }
+  .td1 { animation: pop 5s ease-in-out infinite; animation-delay:.6s }
+  .td2 { animation: pop 5s ease-in-out infinite; animation-delay:1.9s }
+  .td3 { animation: pop 5s ease-in-out infinite; animation-delay:3.2s }
+  @keyframes pop { 0%,8%{ transform: scale(.2); opacity:0 } 16%{ transform: scale(1.25) } 24%,100%{ transform: scale(1); opacity:1 } }
+
+  /* Steps connector draw */
+  .step-line { stroke-dasharray: 300; stroke-dashoffset: 0; animation: draw 4s ease-in-out infinite; }
+  @keyframes draw { 0%{ stroke-dashoffset: 300 } 40%,100%{ stroke-dashoffset: 0 } }
+  .step-ico { transform-box: fill-box; transform-origin: center; }
+  .si1 { animation: float 4s ease-in-out infinite; }
+  .si2 { animation: float 4s ease-in-out infinite; animation-delay: .5s; }
+  .si3 { animation: float 4s ease-in-out infinite; animation-delay: 1s; }
+  @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-4px) } }
+
+  /* Legend chips */
+  .legend { display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:16px; }
+  .chip { display:inline-flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted); font-family:var(--font-mono); letter-spacing:.02em; }
+  .dot { width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+  footer.note { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px; }
+  footer.note strong { color: var(--ink); font-weight: 680; }
+  code.k { font-family: var(--font-mono); background: var(--surface-2); padding: 1px 6px; border-radius: 6px; font-size: .92em; color: var(--ink); }
+
+  body.paused * { animation-play-state: paused !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+    .packet { offset-distance: 62%; opacity: 1; }
+    .node-pulse { opacity: 0; }
+    .fx-pdf, .fx-xml { opacity: 0; }
+    .fx-merged, .fx-badge { opacity: 1; transform: none; }
+    .tl-fill { width: 100%; }
+    .tl-dot { opacity: 1; transform: none; }
+    .step-line { stroke-dashoffset: 0; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <span class="brand-eyebrow">Kit de présentation · Facturation électronique</span>
+      <h1>Schémas animés pour votre site</h1>
+      <p class="sub">Cinq modules autonomes pour expliquer la facture électronique et la réforme française — à intégrer tels quels ou à recolorer à votre charte. Chaque schéma est lisible même sans mouvement.</p>
+    </div>
+    <div class="controls">
+      <button class="ctrl" id="toggle" aria-pressed="false">⏸ Pause</button>
+    </div>
+  </header>
+
+  <!-- MODULE 1 — FLUX -->
+  <section class="module">
+    <span class="m-eyebrow">Réf. Flux</span>
+    <h2 class="m-title">Le trajet d'une facture électronique</h2>
+    <p class="m-cap">Du fournisseur au client, la facture transite par des plateformes agréées (PDP) et l'annuaire du Portail Public de Facturation. Son statut remonte à chaque étape.</p>
+    <div class="stage scroll">
+      <svg viewBox="0 0 960 300" role="img" aria-label="Flux : Fournisseur, PDP émettrice, PPF et annuaire, PDP réceptrice, Client, avec statuts">
+        <defs>
+          <path id="flowpath" d="M 120 120 H 840" fill="none"/>
+        </defs>
+        <!-- base line -->
+        <line x1="120" y1="120" x2="840" y2="120" stroke="var(--line)" stroke-width="2"/>
+        <line class="flow-dash" x1="120" y1="120" x2="840" y2="120" stroke="var(--accent)" stroke-width="2" fill="none"/>
+
+        <!-- nodes -->
+        <g>
+          <!-- 1 Fournisseur -->
+          <g transform="translate(70,86)">
+            <rect class="nodebox" width="100" height="68" rx="12"/>
+            <circle class="node-pulse np1" cx="50" cy="34" r="40" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <text class="lbl" x="50" y="30" text-anchor="middle" font-size="13">Fournisseur</text>
+            <text class="lbl-sm" x="50" y="47" text-anchor="middle" font-size="10.5">émetteur</text>
+          </g>
+          <!-- 2 PDP émettrice -->
+          <g transform="translate(250,86)">
+            <rect class="nodebox" width="110" height="68" rx="12"/>
+            <circle class="node-pulse np2" cx="55" cy="34" r="42" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <text class="lbl" x="55" y="30" text-anchor="middle" font-size="13">PDP émettrice</text>
+            <text class="code lbl-sm" x="55" y="47" text-anchor="middle" font-size="10">immatriculée</text>
+          </g>
+          <!-- 3 PPF / annuaire -->
+          <g transform="translate(430,86)">
+            <rect class="nodebox" width="110" height="68" rx="12"/>
+            <circle class="node-pulse np3" cx="55" cy="34" r="42" fill="none" stroke="var(--green)" stroke-width="2"/>
+            <text class="lbl" x="55" y="28" text-anchor="middle" font-size="12.5">PPF · Annuaire</text>
+            <text class="lbl-sm" x="55" y="45" text-anchor="middle" font-size="10">routage &amp; données</text>
+          </g>
+          <!-- 4 PDP réceptrice -->
+          <g transform="translate(610,86)">
+            <rect class="nodebox" width="110" height="68" rx="12"/>
+            <circle class="node-pulse np4" cx="55" cy="34" r="42" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <text class="lbl" x="55" y="30" text-anchor="middle" font-size="13">PDP réceptrice</text>
+            <text class="code lbl-sm" x="55" y="47" text-anchor="middle" font-size="10">immatriculée</text>
+          </g>
+          <!-- 5 Client -->
+          <g transform="translate(790,86)">
+            <rect class="nodebox" width="100" height="68" rx="12"/>
+            <circle class="node-pulse np5" cx="50" cy="34" r="40" fill="none" stroke="var(--green)" stroke-width="2"/>
+            <text class="lbl" x="50" y="30" text-anchor="middle" font-size="13">Client</text>
+            <text class="lbl-sm" x="50" y="47" text-anchor="middle" font-size="10.5">destinataire</text>
+          </g>
+        </g>
+
+        <!-- travelling invoice packet -->
+        <g class="packet">
+          <g transform="translate(-13,-16)">
+            <rect width="26" height="32" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+            <line x1="6" y1="9"  x2="20" y2="9"  stroke="var(--accent)" stroke-width="2"/>
+            <line x1="6" y1="15" x2="20" y2="15" stroke="var(--accent)" stroke-width="1.6"/>
+            <line x1="6" y1="21" x2="16" y2="21" stroke="var(--accent)" stroke-width="1.6"/>
+          </g>
+        </g>
+
+        <!-- status pills -->
+        <g transform="translate(0,210)">
+          <text class="m-eyebrow" x="120" y="0" font-family="var(--font-mono)" font-size="11" fill="var(--muted)" letter-spacing="1.5">CYCLE DE VIE</text>
+          <g class="pill-status ps1" transform="translate(120,14)">
+            <rect width="120" height="30" rx="15" fill="var(--accent-soft)"/>
+            <text class="code" x="60" y="20" text-anchor="middle" font-size="12" fill="var(--accent)">Déposée</text>
+          </g>
+          <g class="pill-status ps2" transform="translate(260,14)">
+            <rect width="120" height="30" rx="15" fill="var(--accent-soft)"/>
+            <text class="code" x="60" y="20" text-anchor="middle" font-size="12" fill="var(--accent)">Reçue</text>
+          </g>
+          <g class="pill-status ps3" transform="translate(400,14)">
+            <rect width="140" height="30" rx="15" fill="var(--green-soft)"/>
+            <text class="code" x="70" y="20" text-anchor="middle" font-size="12" fill="var(--green)">Approuvée</text>
+          </g>
+          <g class="pill-status ps4" transform="translate(560,14)">
+            <rect width="140" height="30" rx="15" fill="var(--green-soft)"/>
+            <text class="code" x="70" y="20" text-anchor="middle" font-size="12" fill="var(--green)">Encaissée</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- MODULE 2 — PÉRIMÈTRE -->
+  <section class="module">
+    <span class="m-eyebrow">Réf. Périmètre</span>
+    <h2 class="m-title">e‑invoicing &amp; e‑reporting : deux obligations</h2>
+    <p class="m-cap">Les factures entre entreprises françaises passent par l'e‑invoicing. Les autres flux — ventes aux particuliers, international, données de paiement — sont transmis à l'administration via l'e‑reporting.</p>
+    <div class="stage scroll">
+      <svg viewBox="0 0 960 260" role="img" aria-label="Périmètre e-invoicing versus e-reporting">
+        <!-- center -->
+        <g transform="translate(60,104)">
+          <rect class="nodebox" width="150" height="72" rx="14"/>
+          <text class="lbl" x="75" y="32" text-anchor="middle" font-size="14">Votre entreprise</text>
+          <text class="lbl-sm" x="75" y="50" text-anchor="middle" font-size="11">émet une transaction</text>
+        </g>
+
+        <!-- branch e-invoicing (top) -->
+        <path d="M 210 120 C 330 120, 360 60, 470 60" fill="none" stroke="var(--green)" stroke-width="2.5"/>
+        <path class="flow-dash" d="M 210 120 C 330 120, 360 60, 470 60" fill="none" stroke="var(--green)" stroke-width="2.5"/>
+        <g transform="translate(300,26)">
+          <rect width="150" height="30" rx="15" fill="var(--green-soft)"/>
+          <text class="code" x="75" y="20" text-anchor="middle" font-size="11.5" fill="var(--green)">e‑invoicing · PDP</text>
+        </g>
+        <g transform="translate(470,30)">
+          <rect class="nodebox" width="170" height="62" rx="13"/>
+          <text class="lbl" x="85" y="27" text-anchor="middle" font-size="13">Client B2B (France)</text>
+          <text class="lbl-sm" x="85" y="45" text-anchor="middle" font-size="10.5">reçoit la facture</text>
+        </g>
+
+        <!-- branch e-reporting (bottom) -->
+        <path d="M 210 160 C 330 160, 360 210, 470 210" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
+        <path class="flow-dash" d="M 210 160 C 330 160, 360 210, 470 210" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
+        <g transform="translate(300,196)">
+          <rect width="160" height="30" rx="15" fill="var(--amber-soft)"/>
+          <text class="code" x="80" y="20" text-anchor="middle" font-size="11.5" fill="var(--amber)">e‑reporting · données</text>
+        </g>
+        <g transform="translate(470,178)">
+          <rect class="nodebox" width="200" height="62" rx="13"/>
+          <text class="lbl" x="100" y="26" text-anchor="middle" font-size="13">Administration (DGFiP)</text>
+          <text class="lbl-sm" x="100" y="44" text-anchor="middle" font-size="10.5">B2C · international · paiement</text>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span class="chip"><span class="dot" style="background:var(--green)"></span>e‑invoicing — facture structurée</span>
+      <span class="chip"><span class="dot" style="background:var(--amber)"></span>e‑reporting — données de transaction</span>
+    </div>
+  </section>
+
+  <!-- MODULE 3 — FORMAT -->
+  <section class="module">
+    <span class="m-eyebrow">Réf. Format</span>
+    <h2 class="m-title">Factur‑X : le format hybride</h2>
+    <p class="m-cap">Un PDF lisible par l'humain et un fichier XML lisible par la machine, réunis dans un seul document conforme à la norme européenne EN 16931.</p>
+    <div class="stage">
+      <svg viewBox="0 0 960 240" role="img" aria-label="Factur-X : fusion d'un PDF et d'un XML en un document hybride">
+        <!-- PDF sheet -->
+        <g class="fx-pdf" transform="translate(250,50)">
+          <rect width="120" height="140" rx="10" fill="var(--pdf)" stroke="var(--pdf-ink)" stroke-width="1.5"/>
+          <text class="code" x="60" y="30" text-anchor="middle" font-size="13" fill="var(--pdf-ink)" font-weight="700">PDF/A‑3</text>
+          <line x1="22" y1="52" x2="98" y2="52" stroke="var(--pdf-ink)" stroke-width="2" opacity=".6"/>
+          <line x1="22" y1="68" x2="98" y2="68" stroke="var(--pdf-ink)" stroke-width="2" opacity=".45"/>
+          <line x1="22" y1="84" x2="80" y2="84" stroke="var(--pdf-ink)" stroke-width="2" opacity=".45"/>
+          <line x1="22" y1="112" x2="98" y2="112" stroke="var(--pdf-ink)" stroke-width="2" opacity=".3"/>
+          <text class="lbl-sm" x="60" y="132" text-anchor="middle" font-size="10">lisible humain</text>
+        </g>
+        <!-- XML block -->
+        <g class="fx-xml" transform="translate(590,50)">
+          <rect width="120" height="140" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text class="code" x="60" y="30" text-anchor="middle" font-size="13" fill="var(--accent)" font-weight="700">XML CII</text>
+          <text class="code" x="16" y="56" font-size="10" fill="var(--accent)">&lt;Invoice&gt;</text>
+          <text class="code" x="26" y="72" font-size="10" fill="var(--muted)">&lt;ID&gt;…&lt;/ID&gt;</text>
+          <text class="code" x="26" y="88" font-size="10" fill="var(--muted)">&lt;TVA&gt;…</text>
+          <text class="code" x="16" y="112" font-size="10" fill="var(--accent)">&lt;/Invoice&gt;</text>
+          <text class="lbl-sm" x="60" y="132" text-anchor="middle" font-size="10">lisible machine</text>
+        </g>
+        <!-- merged -->
+        <g class="fx-merged" transform="translate(410,42)">
+          <rect width="140" height="156" rx="12" fill="var(--surface)" stroke="var(--green)" stroke-width="2.5"/>
+          <rect x="0" y="0" width="140" height="34" rx="12" fill="var(--green-soft)"/>
+          <text class="code" x="70" y="22" text-anchor="middle" font-size="13" fill="var(--green)" font-weight="800">Factur‑X</text>
+          <line x1="20" y1="56" x2="120" y2="56" stroke="var(--pdf-ink)" stroke-width="2" opacity=".5"/>
+          <line x1="20" y1="70" x2="120" y2="70" stroke="var(--pdf-ink)" stroke-width="2" opacity=".4"/>
+          <text class="code" x="20" y="98" font-size="9.5" fill="var(--accent)">&lt;xml/&gt;</text>
+          <line x1="58" y1="94" x2="120" y2="94" stroke="var(--accent)" stroke-width="2" opacity=".5"/>
+          <text class="lbl-sm" x="70" y="130" text-anchor="middle" font-size="10">PDF + XML</text>
+          <g class="fx-badge" transform="translate(94,116)">
+            <circle cx="24" cy="24" r="24" fill="var(--green)"/>
+            <path d="M 13 24 l 7 7 l 13 -14" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span class="chip"><span class="dot" style="background:var(--green)"></span>EN 16931 — socle européen</span>
+      <span class="chip">Formats acceptés : <span style="color:var(--ink)">Factur‑X · UBL · CII</span></span>
+    </div>
+  </section>
+
+  <!-- MODULE 4 — CALENDRIER -->
+  <section class="module">
+    <span class="m-eyebrow">Réf. Calendrier</span>
+    <h2 class="m-title">Le calendrier de la réforme</h2>
+    <p class="m-cap">La réception s'impose à toutes les entreprises, puis l'obligation d'émettre arrive par vagues, des plus grandes aux plus petites.</p>
+    <div class="stage scroll">
+      <svg viewBox="0 0 960 210" role="img" aria-label="Calendrier de la réforme : réception, émission grandes entreprises et ETI, puis PME et TPE">
+        <!-- track -->
+        <rect x="90" y="96" width="780" height="8" rx="4" fill="var(--surface-2)"/>
+        <foreignObject x="90" y="96" width="780" height="8">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="height:8px;border-radius:4px;overflow:hidden;background:transparent">
+            <div class="tl-fill" style="height:8px;width:100%;background:linear-gradient(90deg,var(--accent),var(--green))"></div>
+          </div>
+        </foreignObject>
+
+        <!-- milestone 1 -->
+        <g transform="translate(190,100)">
+          <circle class="tl-dot td1" r="11" fill="var(--accent)" stroke="var(--surface)" stroke-width="3"/>
+          <g transform="translate(-96,-78)">
+            <rect width="192" height="52" rx="10" class="nodebox"/>
+            <text class="lbl" x="96" y="22" text-anchor="middle" font-size="12.5">Réception obligatoire</text>
+            <text class="lbl-sm" x="96" y="39" text-anchor="middle" font-size="10.5">toutes les entreprises</text>
+          </g>
+          <g transform="translate(-34,26)"><rect width="68" height="26" rx="13" fill="var(--accent-soft)"/><text class="code" x="34" y="17" text-anchor="middle" font-size="12" fill="var(--accent)">2026</text></g>
+        </g>
+        <!-- milestone 2 -->
+        <g transform="translate(480,100)">
+          <circle class="tl-dot td2" r="11" fill="var(--accent)" stroke="var(--surface)" stroke-width="3"/>
+          <g transform="translate(-104,-78)">
+            <rect width="208" height="52" rx="10" class="nodebox"/>
+            <text class="lbl" x="104" y="22" text-anchor="middle" font-size="12.5">Émission obligatoire</text>
+            <text class="lbl-sm" x="104" y="39" text-anchor="middle" font-size="10.5">grandes entreprises &amp; ETI</text>
+          </g>
+          <g transform="translate(-34,26)"><rect width="68" height="26" rx="13" fill="var(--accent-soft)"/><text class="code" x="34" y="17" text-anchor="middle" font-size="12" fill="var(--accent)">2026</text></g>
+        </g>
+        <!-- milestone 3 -->
+        <g transform="translate(770,100)">
+          <circle class="tl-dot td3" r="11" fill="var(--green)" stroke="var(--surface)" stroke-width="3"/>
+          <g transform="translate(-96,-78)">
+            <rect width="192" height="52" rx="10" class="nodebox"/>
+            <text class="lbl" x="96" y="22" text-anchor="middle" font-size="12.5">Émission obligatoire</text>
+            <text class="lbl-sm" x="96" y="39" text-anchor="middle" font-size="10.5">PME &amp; TPE</text>
+          </g>
+          <g transform="translate(-34,26)"><rect width="68" height="26" rx="13" fill="var(--green-soft)"/><text class="code" x="34" y="17" text-anchor="middle" font-size="12" fill="var(--green)">2027</text></g>
+        </g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span class="chip">⚠︎ Dates indicatives — à confirmer sur <span style="color:var(--ink)">impots.gouv.fr</span></span>
+    </div>
+  </section>
+
+  <!-- MODULE 5 — PARCOURS -->
+  <section class="module">
+    <span class="m-eyebrow">Réf. Parcours</span>
+    <h2 class="m-title">Comment ça marche, en 3 étapes</h2>
+    <p class="m-cap">De la connexion de votre outil à l'archivage légal, un parcours continu — sans changer vos habitudes de facturation.</p>
+    <div class="stage scroll">
+      <svg viewBox="0 0 960 220" role="img" aria-label="Trois étapes : connectez, émettez, archivez">
+        <line class="step-line" x1="160" y1="96" x2="800" y2="96" stroke="var(--accent)" stroke-width="2.5" fill="none"/>
+
+        <!-- step 1 -->
+        <g transform="translate(90,40)">
+          <circle cx="70" cy="56" r="56" fill="var(--surface-2)" stroke="var(--line)"/>
+          <g class="step-ico si1" transform="translate(46,32)" stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 6 24 h 14 M 34 6 v 14 M 34 6 a 14 14 0 0 1 0 28 h -6"/>
+            <rect x="18" y="18" width="16" height="16" rx="4"/>
+          </g>
+          <g transform="translate(20,120)"><rect width="12" height="22" rx="6" fill="var(--accent)"/><text class="code" x="6" y="16" text-anchor="middle" font-size="12" fill="#fff">1</text></g>
+          <text class="lbl" x="70" y="140" text-anchor="middle" font-size="14">Connectez</text>
+          <text class="lbl-sm" x="70" y="158" text-anchor="middle" font-size="11">votre ERP / logiciel via l'API</text>
+        </g>
+        <!-- step 2 -->
+        <g transform="translate(410,40)">
+          <circle cx="70" cy="56" r="56" fill="var(--surface-2)" stroke="var(--line)"/>
+          <g class="step-ico si2" transform="translate(48,30)" stroke="var(--accent)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="4" width="32" height="44" rx="5"/>
+            <line x1="14" y1="16" x2="30" y2="16"/><line x1="14" y1="26" x2="30" y2="26"/><line x1="14" y1="36" x2="24" y2="36"/>
+          </g>
+          <g transform="translate(20,120)"><rect width="12" height="22" rx="6" fill="var(--accent)"/><text class="code" x="6" y="16" text-anchor="middle" font-size="12" fill="#fff">2</text></g>
+          <text class="lbl" x="70" y="140" text-anchor="middle" font-size="14">Émettez</text>
+          <text class="lbl-sm" x="70" y="158" text-anchor="middle" font-size="11">au bon format, vers la bonne PDP</text>
+        </g>
+        <!-- step 3 -->
+        <g transform="translate(730,40)">
+          <circle cx="70" cy="56" r="56" fill="var(--surface-2)" stroke="var(--line)"/>
+          <g class="step-ico si3" transform="translate(48,30)" stroke="var(--green)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 22 4 l 20 8 v 12 c 0 14 -10 22 -20 26 c -10 -4 -20 -12 -20 -26 v -12 z"/>
+            <path d="M 13 22 l 6 6 l 12 -13"/>
+          </g>
+          <g transform="translate(20,120)"><rect width="12" height="22" rx="6" fill="var(--green)"/><text class="code" x="6" y="16" text-anchor="middle" font-size="12" fill="#fff">3</text></g>
+          <text class="lbl" x="70" y="140" text-anchor="middle" font-size="14">Archivez</text>
+          <text class="lbl-sm" x="70" y="158" text-anchor="middle" font-size="11">valeur probante, 10 ans</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <footer class="note">
+    <p><strong>À propos de ces schémas.</strong> Modules indépendants, aux couleurs pilotées par des variables CSS (<code class="k">--accent</code>, <code class="k">--green</code>, <code class="k">--amber</code>) : changez trois valeurs pour les passer à votre charte. Ils s'adaptent au thème clair/sombre du lecteur et restent lisibles sans animation (respect de <code class="k">prefers-reduced-motion</code>).</p>
+    <p><strong>Exactitude réglementaire.</strong> Le vocabulaire (PDP, PPF, e‑invoicing, e‑reporting, Factur‑X, EN 16931) est fidèle à la réforme, mais <strong>les dates du calendrier ont déjà été décalées plusieurs fois</strong> : vérifiez les échéances en vigueur sur impots.gouv.fr / DGFiP avant publication.</p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('toggle');
+    btn.addEventListener('click', function () {
+      var paused = document.body.classList.toggle('paused');
+      btn.setAttribute('aria-pressed', String(paused));
+      btn.textContent = paused ? '▶ Lecture' : '⏸ Pause';
+    });
+  })();
+</script>
